@@ -1,0 +1,3 @@
+/home/dennis/C/sample/build/CMakeFiles/SampleE.dir
+/home/dennis/C/sample/build/CMakeFiles/edit_cache.dir
+/home/dennis/C/sample/build/CMakeFiles/rebuild_cache.dir

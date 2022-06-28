@@ -1,0 +1,26 @@
+notes
+
+
+developers who dont know how to code
+there is no best practice
+there is what some people do and what other people do
+you cannot go online and search the best way
+lo que les voy a comentar es Mi manera de hacerlo, 
+es la que me gusta 
+
+yo aprendi usando makefiles
+
+default:
+    g++ src/main.cpp -o a.out
+
+Podemos programar directamente en un makefile, pero
+tenemos una herramienta que se llama CMake que hace los makefiles por nosotros
+
+cmake puede hacer mucho de lo que queremos, solo tenemos que pasarle el folder donde esta nuestro
+source y el folder donde queremos que quede el Build
+no pongan el mismo folder como src y build
+
+la mayoria de gente crea un folder build
+
+cmake -S . -B build/
+
