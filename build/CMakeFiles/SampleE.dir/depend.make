@@ -1,2 +1,0 @@
-# Empty dependencies file for SampleE.
-# This may be replaced when dependencies are built.
