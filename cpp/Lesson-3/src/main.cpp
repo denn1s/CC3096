@@ -1,7 +1,5 @@
 #include <iostream>	
-#include <math.h>
-
-// #include "Math/math.h"
+#include "Math/math.h"
 
 // #include "math.cpp"
 

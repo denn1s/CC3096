@@ -6,8 +6,6 @@ add_executable(SampleE src/main.cpp)
 
 add_subdirectory(src/Math)
 
-target_include_directories(SampleE PUBLIC src/Math)
-
 target_link_directories(SampleE PRIVATE src/Math)
 
 target_link_libraries(SampleE math)
