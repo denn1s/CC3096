@@ -17,5 +17,6 @@ target_link_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   SDL2main
   SDL2
+  SDL2_image
   Game
 )

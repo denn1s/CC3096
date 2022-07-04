@@ -14,7 +14,7 @@ void Game::init(const char* title, int width, int height)
   {
     std::cout << "SDL subsystems initialized" << std::endl;
 
-    window = SDL_CreateWindow(title, 0, 0, width, height, SDL_WINDOW_FULLSCREEN);
+    window = SDL_CreateWindow(title, 0, 0, width, height, 0);
     if (window)
     {
       std::cout << "SDL window created" << std::endl;
@@ -43,7 +43,7 @@ void Game::handleEvents()
     if (event.type == SDL_QUIT)
     {
       isRunning = false;
-    }  
+    }
   }
 }
 
