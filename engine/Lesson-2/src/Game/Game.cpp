@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include "Game.h"
+#include "TextureManager.h"
 
 SDL_Texture* playerTex = NULL;
 SDL_Rect srcRec, dstRec;
@@ -37,9 +38,7 @@ void Game::init(const char* title, int width, int height)
   }
   counter = 0;
 
-  SDL_Surface* playerSur = IMG_Load("assets/player/front/frames/1.png");
-  playerTex = SDL_CreateTextureFromSurface(renderer, playerSur);
-  SDL_FreeSurface(playerSur);
+  playerTex = TextureManager::LoadTexture(renderer, "assets/player/front/frames/1.png");
 }
 
 void Game::handleEvents()
