@@ -30,12 +30,13 @@ void Game::init(const char* title, int width, int height)
 
 void Game::setup()
 {
-  std::cout << "Game Setup!" << std::endl;
 }
 
 void Game::frameStart()
 {
+  std::cout << "---- Frame: " << counter << " ----" << std::endl;
   frameStartTimestamp = SDL_GetTicks();
+  dT = frameEndTimestamp - frameStartTimestamp;
 }
 
 void Game::frameEnd()
@@ -50,6 +51,7 @@ void Game::frameEnd()
   }
 
   counter++;
+  std::cout << " " << std::endl;
 }
 
 void Game::handleEvents()
@@ -68,19 +70,16 @@ void Game::handleEvents()
 
 void Game::update()
 {
-  std::cout << "Game Update!" << std::endl;
+  std::cout << "Game Updating.." << std::endl;
 
 }
 
 void Game::render()
 {
-  std::cout << "Game Rendering" << std::endl;
-  std::cout << "Frame:" << counter << std::endl;
+  std::cout << "Game Rendering..." << std::endl;
 
   SDL_RenderClear(renderer);
-
   // actually render stuff
-
   SDL_RenderPresent(renderer);
 
 }

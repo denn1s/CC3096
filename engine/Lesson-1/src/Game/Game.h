@@ -25,4 +25,5 @@ class Game {
     Uint32 frameStartTimestamp;
     Uint32 frameEndTimestamp;
     float frameDuration;
+    float dT; // time in miliseconds since last frame
 };
