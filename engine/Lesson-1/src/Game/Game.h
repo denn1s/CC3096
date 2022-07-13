@@ -6,6 +6,9 @@ class Game {
     ~Game();
 
     void init(const char* title, int width, int height);
+    void setup();
+    void frameStart();
+    void frameEnd();
     void handleEvents();
     void update();
     void render();
@@ -17,4 +20,9 @@ class Game {
     bool isRunning;
     SDL_Window *window;
     SDL_Renderer *renderer;
+    // for frame management
+    int FPS;
+    Uint32 frameStartTimestamp;
+    Uint32 frameEndTimestamp;
+    float frameDuration;
 };

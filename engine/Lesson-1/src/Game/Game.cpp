@@ -3,7 +3,10 @@
 #include "Game.h"
 
 Game::Game()
-{}
+{
+  FPS = 60;
+  frameDuration = (1.0f / FPS) * 1000.0f;  // how many mili seconds in one frame
+}
 
 Game::~Game()
 {}
@@ -12,21 +15,10 @@ void Game::init(const char* title, int width, int height)
 {
   if(SDL_Init(SDL_INIT_EVERYTHING) == 0)
   {
-    std::cout << "SDL subsystems initialized" << std::endl;
-
     window = SDL_CreateWindow(title, 0, 0, width, height, 0);
-    if (window)
-    {
-      std::cout << "SDL window created" << std::endl;
-    }
-
     renderer = SDL_CreateRenderer(window, -1, 0);
-
-    if (renderer)
-    {
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 1);
-      std::cout << "SDL renderer created" << std::endl;
-    }
+    SDL_SetRenderDrawColor(renderer, 200, 255, 255, 1);
+    std::cout << "Game Start!" << std::endl;
 
     isRunning = true;
   } else {
@@ -35,8 +27,35 @@ void Game::init(const char* title, int width, int height)
   counter = 0;
 }
 
+
+void Game::setup()
+{
+  std::cout << "Game Setup!" << std::endl;
+}
+
+void Game::frameStart()
+{
+  frameStartTimestamp = SDL_GetTicks();
+}
+
+void Game::frameEnd()
+{
+  frameEndTimestamp = SDL_GetTicks();
+
+  float actualFrameDuration = frameEndTimestamp - frameStartTimestamp;
+
+  if (actualFrameDuration < frameDuration)
+  {
+    SDL_Delay(frameDuration - actualFrameDuration);
+  }
+
+  counter++;
+}
+
 void Game::handleEvents()
 {
+  std::cout << "Game Handling events..." << std::endl;
+
   SDL_Event event;
   while (SDL_PollEvent(&event) != 0)
   {
@@ -49,13 +68,20 @@ void Game::handleEvents()
 
 void Game::update()
 {
-  counter++;
-  std::cout << counter << std::endl;
+  std::cout << "Game Update!" << std::endl;
+
 }
 
 void Game::render()
 {
+  std::cout << "Game Rendering" << std::endl;
+  std::cout << "Frame:" << counter << std::endl;
+
   SDL_RenderClear(renderer);
+
+  // actually render stuff
+
+  SDL_RenderPresent(renderer);
 
 }
 

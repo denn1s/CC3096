@@ -11,12 +11,15 @@ int main( int argc, char* args[] )
     game = new Game();
 
     game->init("Brand new game", SCREEN_WIDTH, SCREEN_HEIGHT);
+    game->setup();
 
     while (game->running())
     {
+      game->frameStart();
       game->handleEvents();
       game->update();
       game->render();
+      game->frameEnd();
     }
 
     game->clean();
