@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "Game.h"
@@ -106,8 +107,8 @@ void Game::handleEvents()
   }
 }
 
-int sx = 1;
-int sy = 1;
+int sx = 100;
+int sy = 100;
 
 void Game::update()
 {
@@ -142,8 +143,8 @@ void Game::update()
     sx *= 1.1;
   }
 
-  ball.x += sx;
-  ball.y += sy;
+  ball.x += round(sx * dT);
+  ball.y += round(sy * dT);
   std::cout << "x:" << ball.x << " y:" << ball.y << std::endl;
 
 }
