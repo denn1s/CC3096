@@ -54,7 +54,14 @@ void Game::frameStart()
 {
   std::cout << "---- Frame: " << counter << " ----" << std::endl;
   frameStartTimestamp = SDL_GetTicks();
-  dT = frameEndTimestamp - frameStartTimestamp;
+  if (frameEndTimestamp)
+  {
+    dT = (frameStartTimestamp - frameEndTimestamp) / 1000.0f;
+  }
+  else
+  {
+    dT = 0;
+  }
 }
 
 void Game::frameEnd()
