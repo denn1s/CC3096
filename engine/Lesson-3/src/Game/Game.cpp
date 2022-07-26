@@ -1,14 +1,17 @@
 #include <iostream>
 #include <cmath>
+#include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "Game.h"
+#include "STexture.cpp"
 
 int screen_width;
 int screen_height;
 
 SDL_Rect ball;
 SDL_Rect paddle;
+STexture* sampleTexture;
 
 /*
 
@@ -59,6 +62,9 @@ SDL_Rect paddle;
 
   */
 
+
+
+
 Game::Game()
 {
   FPS = 60;
@@ -77,6 +83,7 @@ void Game::init(const char* title, int width, int height)
   {
     window = SDL_CreateWindow(title, 0, 0, width, height, 0);
     renderer = SDL_CreateRenderer(window, -1, 0);
+    IMG_Init(IMG_INIT_PNG);
     std::cout << "Game Start!" << std::endl;
 
     screen_width = width;
@@ -89,6 +96,10 @@ void Game::init(const char* title, int width, int height)
   counter = 0;
 }
 
+Uint32 fragment(Uint32 currentColor)
+{
+  return currentColor;
+}
 
 void Game::setup()
 {
@@ -96,6 +107,10 @@ void Game::setup()
   ball.y = 20;
   ball.w = 300;
   ball.h = 300;
+
+  sampleTexture = new STexture(renderer, window);
+  sampleTexture->load("./src/Game/chr1.png");
+  sampleTexture->applyShader(fragment);
 }
 
 void Game::frameStart()
@@ -173,12 +188,19 @@ void Game::render()
   SDL_SetRenderDrawColor(renderer, 255, 255 ,255, 1);
 
 
-  SDL_Surface* surface = IMG_Load("./src/Game/1.png");  
-  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+  // SDL_Surface* surface = IMG_Load("./src/Game/1.png");  
+  // SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 
-  SDL_FreeSurface(surface);
-  SDL_RenderCopy(renderer, texture, NULL, &ball);
-  SDL_DestroyTexture(texture);
+  sampleTexture->render(
+    0,
+    0,
+    300,
+    300
+  );
+
+  // SDL_FreeSurface(surface);
+  // SDL_RenderCopy(renderer, texture, NULL, &ball);
+  // SDL_DestroyTexture(texture);
   SDL_RenderFillRect(renderer, &paddle);
 
   SDL_RenderPresent(renderer);
@@ -189,6 +211,7 @@ void Game::clean()
 {
   SDL_DestroyWindow(window);
   SDL_DestroyRenderer(renderer);
+	IMG_Quit();
   SDL_Quit();
   std::cout << "Game Over." << std::endl;
 }

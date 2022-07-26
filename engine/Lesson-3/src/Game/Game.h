@@ -14,6 +14,7 @@ class Game {
     void render();
     void clean();
     bool running();
+    bool loadMedia();
 
   private:
     int counter;

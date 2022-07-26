@@ -13,7 +13,7 @@ int main( int argc, char* args[] )
     game->init("Brand new game", SCREEN_WIDTH, SCREEN_HEIGHT);
     game->setup();
 
-    while (game->running())
+    while (true && game->running())
     {
       game->frameStart();
       game->handleEvents();
