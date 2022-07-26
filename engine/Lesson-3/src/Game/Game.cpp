@@ -10,14 +10,66 @@ int screen_height;
 SDL_Rect ball;
 SDL_Rect paddle;
 
+/*
+
+  void SomeFunction ()
+  {
+    Enemy enemy;
+
+    enemy.jump():
+    enemy.run(10);
+    enemy.look("LEFT");
+  }
+
+  Cada vez que creamos un objeto (sin la palabra new), el sistema operativo lo pone en un stack
+  los bloques de memoria son continuos
+  el tamaño de la memoria a alocar es conocido por el compilador
+  el stack tiene un tamaño fijo (linux 2MB)
+  no nos debemos peocupar por apartar la memoria
+  cuando salimos del scope, se debe liberar la memoria, c++ saca el objeto del stack automaticamente
+  c++ no tiene un garbage collector
+  stack overflow
+  esto ya lo hacemols, por ejemplo en el Game, podemos ver como llama al constructor y al destructor
+  el stack no es el unico lugar en el que podemos almacenar cosas
+  los sistemas operativos proveen un espacio mas grande para trabajar que se llama el heap
+
+
+  void SomeFunction ()
+  {
+    Enemy* enemy = new Enemy(); // constructor method
+
+    enemy->jump():  
+    enemy->run(10);
+    enemy->look("LEFT");
+
+    delete enemy;  // we need to manually delete, esto llama al destructor
+  }
+
+  en el heap, la memoria se aparta dinamicamente.
+  no tiene restricciones de memoria, podemos manejar toda la memoria del sistema
+  es mas lento que el stack
+  el stack es continuo, al heap hay que referenciarlo
+
+  porque existe esto
+    c -> malloc + constructor
+    c -> destructor + free
+
+    c++ -> new
+    c++ -> delete
+
+  */
+
 Game::Game()
 {
-  FPS = 240;
+  FPS = 60;
   frameDuration = (1.0f / FPS) * 1000.0f;  // how many mili seconds in one frame
+  std::cout << "Game Object Constructed!" << std::endl;
 }
 
 Game::~Game()
-{}
+{
+  std::cout << "Game Object Destroyed!" << std::endl;
+}
 
 void Game::init(const char* title, int width, int height)
 {
@@ -42,13 +94,8 @@ void Game::setup()
 {
   ball.x = 20;
   ball.y = 20;
-  ball.w = 24;
-  ball.h = 24;
-
-  paddle.x = (screen_width / 2) - 50;
-  paddle.y = screen_height - 20;
-  paddle.w = 100;
-  paddle.h = 20;
+  ball.w = 300;
+  ball.h = 300;
 }
 
 void Game::frameStart()
@@ -113,40 +160,6 @@ int sy = 100;
 void Game::update()
 {
   std::cout << "Game Updating.." << std::endl;
-
-  // collisions 
-  if (ball.x <= 0)
-  {
-    sx *= -1;
-  }
-
-  if (ball.x + ball.w >= screen_width)
-  {
-    sx *= -1;
-  }
-
-  if (ball.y <= 0)
-  {
-    sy *= -1;
-  }
-
-  if (ball.y + ball.h >= screen_height)
-  {
-    isRunning = false;
-  }
-
-  if (ball.y + ball.h >= paddle.y &&
-      ball.x + ball.w >= paddle.x &&
-      ball.x <= paddle.x + paddle.w)
-  {
-    sy *= -1.1;
-    sx *= 1.1;
-  }
-
-  ball.x += round(sx * dT);
-  ball.y += round(sy * dT);
-  std::cout << "x:" << ball.x << " y:" << ball.y << std::endl;
-
 }
 
 void Game::render()
@@ -160,10 +173,8 @@ void Game::render()
   SDL_SetRenderDrawColor(renderer, 255, 255 ,255, 1);
 
 
-  SDL_Surface* surface = IMG_Load("./src/Game/1.png");
-  std::cout << "s:" << surface << " e:" << SDL_GetError() <<  " i:" << IMG_GetError() << std::endl;
+  SDL_Surface* surface = IMG_Load("./src/Game/1.png");  
   SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-  std::cout << "t:" << texture << " e:" << SDL_GetError() <<  " i:" << IMG_GetError() << std::endl;
 
   SDL_FreeSurface(surface);
   SDL_RenderCopy(renderer, texture, NULL, &ball);
