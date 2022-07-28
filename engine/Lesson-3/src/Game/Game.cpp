@@ -13,58 +13,6 @@ SDL_Rect ball;
 SDL_Rect paddle;
 STexture* sampleTexture;
 
-/*
-
-  void SomeFunction ()
-  {
-    Enemy enemy;
-
-    enemy.jump():
-    enemy.run(10);
-    enemy.look("LEFT");
-  }
-
-  Cada vez que creamos un objeto (sin la palabra new), el sistema operativo lo pone en un stack
-  los bloques de memoria son continuos
-  el tamaño de la memoria a alocar es conocido por el compilador
-  el stack tiene un tamaño fijo (linux 2MB)
-  no nos debemos peocupar por apartar la memoria
-  cuando salimos del scope, se debe liberar la memoria, c++ saca el objeto del stack automaticamente
-  c++ no tiene un garbage collector
-  stack overflow
-  esto ya lo hacemols, por ejemplo en el Game, podemos ver como llama al constructor y al destructor
-  el stack no es el unico lugar en el que podemos almacenar cosas
-  los sistemas operativos proveen un espacio mas grande para trabajar que se llama el heap
-
-
-  void SomeFunction ()
-  {
-    Enemy* enemy = new Enemy(); // constructor method
-
-    enemy->jump():  
-    enemy->run(10);
-    enemy->look("LEFT");
-
-    delete enemy;  // we need to manually delete, esto llama al destructor
-  }
-
-  en el heap, la memoria se aparta dinamicamente.
-  no tiene restricciones de memoria, podemos manejar toda la memoria del sistema
-  es mas lento que el stack
-  el stack es continuo, al heap hay que referenciarlo
-
-  porque existe esto
-    c -> malloc + constructor
-    c -> destructor + free
-
-    c++ -> new
-    c++ -> delete
-
-  */
-
-
-
-
 Game::Game()
 {
   FPS = 60;
@@ -96,9 +44,19 @@ void Game::init(const char* title, int width, int height)
   counter = 0;
 }
 
-Uint32 fragment(Uint32 currentColor)
+Uint32 fragment(Uint32 currentColor, float dT)
 {
-  return currentColor;
+  if (currentColor == 0) {
+    return currentColor;
+  }
+
+  Uint8 red = (currentColor >> 16) & 0xff;
+  Uint8 green = (currentColor >> 8) & 0xff;
+  Uint8 blue = currentColor  & 0xff;
+  
+  // std::cout << "r: " <<  (int)red << " g: " <<  (int)green << " b: " <<  (int)blue << std::endl;
+
+  return currentColor + dT;
 }
 
 void Game::setup()
@@ -110,7 +68,6 @@ void Game::setup()
 
   sampleTexture = new STexture(renderer, window);
   sampleTexture->load("./src/Game/chr1.png");
-  sampleTexture->applyShader(fragment);
 }
 
 void Game::frameStart()
@@ -175,6 +132,14 @@ int sy = 100;
 void Game::update()
 {
   std::cout << "Game Updating.." << std::endl;
+  Uint32 currentColor = sampleTexture->getPixel(8, 8);
+  Uint8 red = (currentColor >> 16) & 0xff;
+  Uint8 green = (currentColor >> 8) & 0xff;
+  Uint8 blue = currentColor  & 0xff;
+  
+  std::cout << "r: " <<  (int)red << " g: " <<  (int)green << " b: " <<  (int)blue << std::endl;
+
+  sampleTexture->executeShader(fragment, dT);
 }
 
 void Game::render()

@@ -16,7 +16,7 @@ class STexture
 		//Loads image at specified path
 		void load(std::string path);
 
-		void applyShader(Uint32(*func)(Uint32));
+		void executeShader(Uint32(*func)(Uint32, float), float dT);
 
 		//Deallocates texture
 		void free();
@@ -37,6 +37,7 @@ class STexture
 		Uint32* getPixels();
 		int getPitch();
     int getPixelCount();
+    Uint32 getPixel(int x, int y);
 
 	private:
 		//The actual hardware texture
@@ -83,7 +84,7 @@ STexture::~STexture()
   mPitch = 0;
 }
 
-void STexture::applyShader(Uint32(*func)(Uint32))
+void STexture::executeShader(Uint32(*func)(Uint32, float), float dT)
 {
 	// texture must be loaded first
 
@@ -95,7 +96,7 @@ void STexture::applyShader(Uint32(*func)(Uint32))
   
   for( int i = 0; i < pixelCount; ++i)
   {
-    pixels[i] = func(pixels[i]);
+    pixels[i] = func(pixels[i], dT);
   }
   
   unlockTexture();
@@ -208,3 +209,12 @@ int STexture::getPixelCount()
 	return (getPitch() / 4) * getHeight();
 }
 
+Uint32 STexture::getPixel(int x, int y)
+{
+  lockTexture();
+  Uint32* pixels = getPixels();
+  Uint32 pixel = pixels[(y * getPitch() / 4) + x];
+  unlockTexture();
+
+	return pixel;
+}
