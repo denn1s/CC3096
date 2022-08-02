@@ -16,13 +16,17 @@ class STexture
 		//Loads image at specified path
 		void load(std::string path);
 
-		void executeShader(Uint32(*func)(Uint32, float), float dT);
+		void executeShader(Uint32(*func)(Uint32));
 
 		//Deallocates texture
 		void free();
 		
 		// Renders texture at given point
 		void render(int x, int y, int w = 0, int h = 0, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
+		void renderWithShader(
+      int x, int y, int w, int h,
+      Uint32(*func)(Uint32)
+    );
 
     // Get a single color (using current mapping)
 		Uint32 color(Uint8 red, Uint8 green, Uint8 blue);
@@ -84,7 +88,7 @@ STexture::~STexture()
   mPitch = 0;
 }
 
-void STexture::executeShader(Uint32(*func)(Uint32, float), float dT)
+void STexture::executeShader(Uint32(*func)(Uint32))
 {
 	// texture must be loaded first
 
@@ -96,7 +100,7 @@ void STexture::executeShader(Uint32(*func)(Uint32, float), float dT)
   
   for( int i = 0; i < pixelCount; ++i)
   {
-    pixels[i] = func(pixels[i], dT);
+    pixels[i] = func(pixels[i]);
   }
   
   unlockTexture();
@@ -156,6 +160,32 @@ void STexture::render(int x, int y, int w, int h, SDL_Rect* clip, double angle, 
 
 	SDL_RenderCopyEx(renderer, mTexture, clip, &renderQuad, angle, center, flip);
 }
+
+void STexture::renderWithShader(int x, int y, int w, int h, Uint32(*func)(Uint32))
+{
+	SDL_Rect renderQuad = { x, y, w, h };
+
+	lockTexture();
+  Uint32* pixels = getPixels();  
+
+  void* copyPixels;
+  int copyPitch;
+  SDL_Texture* copyTexture = SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), SDL_TEXTUREACCESS_STREAMING, mWidth, mHeight);
+
+  SDL_LockTexture(copyTexture, NULL, &copyPixels, &copyPitch);
+  Uint32* copyPixelsInt = (Uint32*) copyPixels;
+
+  for(int i = 0; i < (mWidth * mHeight); ++i)
+  {
+    copyPixelsInt[i] = func(pixels[i]);
+  }
+
+  SDL_UnlockTexture(copyTexture);
+  unlockTexture();
+
+	SDL_RenderCopy(renderer, copyTexture, NULL, &renderQuad);
+}
+
 
 int STexture::getWidth()
 {

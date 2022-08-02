@@ -44,7 +44,7 @@ void Game::init(const char* title, int width, int height)
   counter = 0;
 }
 
-Uint32 fragment(Uint32 currentColor, float dT)
+Uint32 fragment(Uint32 currentColor)
 {
   if (currentColor == 0) {
     return currentColor;
@@ -54,9 +54,9 @@ Uint32 fragment(Uint32 currentColor, float dT)
   Uint8 green = (currentColor >> 8) & 0xff;
   Uint8 blue = currentColor  & 0xff;
   
-  // std::cout << "r: " <<  (int)red << " g: " <<  (int)green << " b: " <<  (int)blue << std::endl;
+  std::cout << "r: " <<  (int)red << " g: " <<  (int)green << " b: " <<  (int)blue << std::endl;
 
-  return currentColor + dT;
+  return currentColor;
 }
 
 void Game::setup()
@@ -139,7 +139,7 @@ void Game::update()
   
   std::cout << "r: " <<  (int)red << " g: " <<  (int)green << " b: " <<  (int)blue << std::endl;
 
-  sampleTexture->executeShader(fragment, dT);
+  // sampleTexture->executeShader(fragment);
 }
 
 void Game::render()
@@ -156,11 +156,12 @@ void Game::render()
   // SDL_Surface* surface = IMG_Load("./src/Game/1.png");  
   // SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 
-  sampleTexture->render(
+  sampleTexture->renderWithShader(
     0,
     0,
     300,
-    300
+    300,
+    fragment
   );
 
   // SDL_FreeSurface(surface);
