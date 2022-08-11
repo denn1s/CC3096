@@ -97,6 +97,29 @@ bool bounceInputSystem(int key) {
   return true;
 }
 
+
+bool mouseBounceInputSystem(int x, int y)
+{
+  auto view = reg.view<PositionComponent, CubeComponent, VelocityComponent>();
+  for (const entt::entity e : view) {
+    const PositionComponent& pos = view.get<PositionComponent>(e);
+    VelocityComponent& vel = view.get<VelocityComponent>(e);
+    const CubeComponent& cub = view.get<CubeComponent>(e);
+    
+    if (
+      y >= pos.y &&
+      x >= pos.x &&
+      y <= pos.y + cub.h &&
+      x <= pos.x + cub.w    
+    ) {
+      vel.x *= -1.2;
+      vel.y *= -1.2;
+    }
+  }
+  return true;
+}
+
+
 Game::Game()
 {
   FPS = 60;
@@ -180,6 +203,11 @@ void Game::handleEvents()
     if (event.type == SDL_KEYDOWN)
     {
       bounceInputSystem(event.key.keysym.sym);
+    }
+
+    if (event.type == SDL_MOUSEBUTTONDOWN)
+    {
+      mouseBounceInputSystem(event.motion.x, event.motion.y);
     }
   }
 }
