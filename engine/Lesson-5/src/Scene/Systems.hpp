@@ -3,6 +3,9 @@
 
 #include "../Scene/Components.hpp"
 
+
+int counter = 0;
+
 void HelloSystem(entt::registry& reg) {
   std::cout << "IM A SYSTEM" << std::endl;
 };
@@ -38,6 +41,7 @@ void MovementSystem(entt::registry& reg, double dT) {
 
     std::cout << "x: " << t.position.x << std::endl;
     std::cout << "y: " << t.position.y << std::endl;
+    std::cout << "c: " << counter++ << std::endl;
   }
 };
 
