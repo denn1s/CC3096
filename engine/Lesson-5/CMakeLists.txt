@@ -4,6 +4,8 @@ project(SDLDEMO VERSION 1.0)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 
+include_directories(src)
+
 add_subdirectory(src/Game)
 add_subdirectory(src/Scene)
 

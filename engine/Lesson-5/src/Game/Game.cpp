@@ -8,11 +8,11 @@
 #include "Game.h"
 #include "STexture.cpp"
 
-#include "../Scene/Scene.h"
+#include "Scene/Scene.h"
 
-#include "../Scene/Entities.hpp"
-#include "../Scene/Components.hpp"
-#include "../Scene/Systems.hpp"
+#include "Scene/Entities.hpp"
+#include "Scene/Components.hpp"
+#include "Scene/Systems.hpp"
 
 int screen_width;
 int screen_height;
