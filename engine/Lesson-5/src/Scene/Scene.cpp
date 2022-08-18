@@ -5,8 +5,9 @@
 
 #include "Scene.h"
 
-#include "Entity.hpp"
+#include "Entities.hpp"
 #include "Components.hpp"
+#include "System.h"
 
 
 Scene::Scene(const std::string& name)
@@ -22,26 +23,33 @@ Scene::~Scene()
 Entity Scene::createEntity(const std::string& name, int x, int y)
 {
   Entity entity = { r.create(), this };
-  entity.addComponent<TagComponent>(TagComponent{name});
-  entity.addComponent<TransformComponent>(
-    TransformComponent{glm::vec2(x, y),glm::vec2(1, 1),0.0d}
-  );
+  entity.addComponent<TagComponent>(name);
+  entity.addComponent<TransformComponent>(glm::vec2(x, y),glm::vec2(1, 1),0.0d);
 
   return entity;
 }
 
-void Scene::addSetupSystem(SetupSystem s)
+void Scene::addSetupSystem(SetupSystem* s)
 {
+  s->setScene(this);
   setupSystems.push_back(s);
 }
 
-void Scene::addUpdateSystem(UpdateSystem s)
+void Scene::addInputSystem(InputSystem* s)
 {
+  s->setScene(this);
+  inputSystems.push_back(s);
+}
+
+void Scene::addUpdateSystem(UpdateSystem* s)
+{
+  s->setScene(this);
   updateSystems.push_back(s);
 }
 
-void Scene::addRenderSystem(RenderSystem s)
+void Scene::addRenderSystem(RenderSystem* s)
 {
+  s->setScene(this);
   renderSystems.push_back(s);
 }
 
@@ -49,9 +57,9 @@ void Scene::setup()
 {
   std::cout << "Scene Setup" << std::endl;
   
-  for (SetupSystem &sys: setupSystems)
+  for (SetupSystem* sys: setupSystems)
   {
-    sys(r);
+    sys->run();
   }
 }
 
@@ -59,9 +67,9 @@ void Scene::update(double dT)
 {
   std::cout << "Scene Update" << std::endl;
   
-  for (UpdateSystem &sys: updateSystems)
+  for (UpdateSystem* sys: updateSystems)
   {
-    sys(r, dT);
+    sys->run(dT);
   }
 }
 
@@ -69,8 +77,8 @@ void Scene::render(SDL_Renderer* renderer)
 {
   std::cout << "Scene Render" << std::endl;
   
-  for (RenderSystem &sys: renderSystems)
+  for (RenderSystem* sys: renderSystems)
   {
-    sys(r, renderer);
+    sys->run(renderer);
   }
 }

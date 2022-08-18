@@ -10,127 +10,16 @@
 
 #include "../Scene/Scene.h"
 
-#include "../Scene/Entity.hpp"
+#include "../Scene/Entities.hpp"
 #include "../Scene/Components.hpp"
 #include "../Scene/Systems.hpp"
 
 int screen_width;
 int screen_height;
 
-/*
-entt::registry reg;
-
-struct PositionComponent {
-  int x, y;
-};
-
-struct VelocityComponent {
-  int x, y;
-};
-
-struct CubeComponent {
-  int w, h;
-};
-
-PositionComponent playerSpawnPosition = {20, 20};
-VelocityComponent playerSpawnVelocity = {200, 200};
-CubeComponent playerRect = {100, 100};
-
-void createPlayerEntity()
-{
-  const entt::entity e = reg.create();
-  reg.emplace<PositionComponent>(e, playerSpawnPosition);
-  reg.emplace<VelocityComponent>(e, playerSpawnVelocity);
-  reg.emplace<CubeComponent>(e, playerRect);  
-}
-
-void cubeRenderSystem(SDL_Renderer* renderer) {
-  SDL_SetRenderDrawColor(renderer, 255, 255 ,255, 1);
-
-  const auto view = reg.view<PositionComponent, CubeComponent>();
-  for (const entt::entity e : view) {
-    const PositionComponent position = view.get<PositionComponent>(e);
-    const CubeComponent cube = view.get<CubeComponent>(e);
-
-    SDL_Rect rect = { position.x, position.y, cube.w, cube.h };    
-    SDL_RenderFillRect(renderer, &rect);
-  }
-}
-
-void movementSystem(double dT) {
-  auto view = reg.view<PositionComponent, VelocityComponent, CubeComponent>();
-  for (const entt::entity e : view) {
-    PositionComponent& pos = view.get<PositionComponent>(e);
-    VelocityComponent& vel = view.get<VelocityComponent>(e);
-    const CubeComponent& cub = view.get<CubeComponent>(e);
-
-    // collisions 
-    if (pos.x <= 0)
-    {
-      vel.x *= -1;
-    }
-
-    if (pos.x + cub.w >= screen_width)
-    {
-      vel.x *= -1;
-    }
-
-    if (pos.y <= 0)
-    {
-      vel.y *= -1;
-    }
-
-    if (pos.y + cub.h >= 480)
-    {
-      vel.y *= -1;
-    }
-
-    pos.x += vel.x * dT;
-    pos.y += vel.y * dT;
-  }
-}
-
-bool bounceInputSystem(int key) {
-  if (key != SDLK_SPACE) {
-    return false;
-  }
-
-  auto view = reg.view<VelocityComponent>();
-  for (const entt::entity e : view) {
-    VelocityComponent& vel = view.get<VelocityComponent>(e);
-    vel.x *= -1.2;
-    vel.y *= -1.2;
-  }
-  return true;
-}
-
-
-bool mouseBounceInputSystem(int x, int y)
-{
-  auto view = reg.view<PositionComponent, CubeComponent, VelocityComponent>();
-  for (const entt::entity e : view) {
-    const PositionComponent& pos = view.get<PositionComponent>(e);
-    VelocityComponent& vel = view.get<VelocityComponent>(e);
-    const CubeComponent& cub = view.get<CubeComponent>(e);
-    
-    if (
-      y >= pos.y &&
-      x >= pos.x &&
-      y <= pos.y + cub.h &&
-      x <= pos.x + cub.w    
-    ) {
-      vel.x *= -1.2;
-      vel.y *= -1.2;
-    }
-  }
-  return true;
-}
-
-*/
-
 Game::Game()
 {
-  FPS = 60;
+  FPS = 5;
   frameDuration = (1.0f / FPS) * 1000.0f;  // how many mili seconds in one frame
   std::cout << "Game Object Constructed!" << std::endl;
 
@@ -172,9 +61,9 @@ void Game::setup()
   player.addComponent<MovementComponent>(MovementComponent{glm::vec2(50, 50)});
   player.addComponent<ColliderComponent>(ColliderComponent{glm::vec2(50, 50)});
 
-  scene->addSetupSystem(HelloSystem);
-  scene->addUpdateSystem(MovementSystem);
-  scene->addRenderSystem(CubeSystem);
+  scene->addSetupSystem(new HelloSystem());
+  scene->addUpdateSystem(new MovementSystem(3000));
+  scene->addRenderSystem(new CubeSystem());
 
   scene->setup();
 }

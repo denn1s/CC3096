@@ -1,3 +1,6 @@
+#ifndef ENTITY_H
+#define ENTITY_H
+
 #include <iostream>
 #include <entt/entt.hpp>
 #include "Scene.h"
@@ -29,3 +32,5 @@ class Entity
     entt::entity handle;
     Scene* scene;
 };
+
+#endif
