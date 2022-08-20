@@ -1,3 +1,4 @@
+#include <vector>
 #include <iostream>
 #include <string>
 #include <SDL2/SDL.h>
@@ -88,40 +89,62 @@ class TilemapSystem : public SetupSystem {
   private:
     SDL_Renderer* renderer;
 
-    const int tilesCount = 2;
-    const int tilesWidth = 4;
-    const int tilesHeight = 3;
+    constexpr static int tilesCount = 2;
+    constexpr static int tilesWidth = 4;
+    constexpr static int tilesHeight = 3;
 
-    const int map[tilesWidth][tilesHeight] = {
+    constexpr static char mmap[tilesWidth][tilesHeight] = {
       {0, 0, 0},
       {0, 1, 0},
       {0, 0, 0},
       {0, 0, 0}
     };
-    const string tiles[tilesCount] = {
-      'assets/characters/fairy/front/1.png',
-      'assets/characters/fairy/front/1.png'
-    }
-    const SDL_Surface* surfaces[tilesCount];
+    const std::string files[tilesCount] = {
+      "assets/characters/fairy/front/1.png",
+      "assets/characters/fairy/front/1.png"
+    };
 
+    std::map<char, SDL_Texture*> tiles;
+    std::vector<SDL_Texture*> tilemap;
 
   public:
-    TilemapSystem(SDL_Renderer* r) : renderer(r) { }
-
-    ~TilemapSystem() {
-      for(int 0; i < tilesCount; i++) {
-        SDL_FreeSurface(surfaces[i]);
-      }
+    TilemapSystem(SDL_Renderer* r) : renderer(r) {
+      std::cout << "Tile map system started" << std::endl;
     }
 
-    void run() override {
-      SDL_Texture* tilemap[tilesWidth][tilesHeight];
+    ~TilemapSystem() {
+      /*
+      for(int i = 0; i < tilesCount; i++) {
+        SDL_FreeSurface(surfaces[i]);
+      }
+      */
+    }
 
-      for(int 0; i < tilesWidth; i++) {
-        for(int 0; j < tilesHeight; j++) {
-          int surfaceIndex = map[i][j];
-          tilemap[i] = SDL_CreateTextureFromSurface(renderer, surfaces[i]);
+    // setup
+    void run() override {
+      SDL_Surface* surfaces[tilesCount];
+
+      for(int i = 0; i < tilesCount; i++) {
+        surfaces[i] = IMG_Load(files[i].c_str());
+      }
+      
+      for(int i = 0; i < tilesWidth; i++) {
+        for(int j = 0; j < tilesHeight; j++) {
+          char surfaceIndex = mmap[i][j];
+          auto found = tiles.find(surfaceIndex);
+          if (found == tiles.end()) {
+            SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surfaces[surfaceIndex]);
+            tiles.insert(
+              std::make_pair(
+                surfaceIndex,
+                texture
+              )
+            );
+            tilemap.push_back(texture);
+          } else {
+            tilemap.push_back(found->second);
+          }
         }
-      }    
+      }
     }
 };

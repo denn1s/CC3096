@@ -38,6 +38,7 @@ void Game::init(const char* title, int width, int height)
   {
     window = SDL_CreateWindow(title, 0, 0, width, height, 0);
     renderer = SDL_CreateRenderer(window, -1, 0);
+    std::cout << "REN" << renderer << std::endl;
     IMG_Init(IMG_INIT_PNG);
     std::cout << "Game Start!" << std::endl;
 
@@ -62,8 +63,7 @@ void Game::setup()
   player.addComponent<ColliderComponent>(ColliderComponent{glm::vec2(50, 50)});
 
   scene->addSetupSystem(new HelloSystem());
-  scene->addUpdateSystem(new MovementSystem(3000));
-  scene->addRenderSystem(new CubeSystem());
+  scene->addSetupSystem(new TilemapSystem(renderer));
 
   scene->setup();
 }

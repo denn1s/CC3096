@@ -14,6 +14,7 @@ class Entity
       handle = e;
       scene = s;
     }
+
     ~Entity() {
       std::cout << "Entity Destroyed" << std::endl;
     }
