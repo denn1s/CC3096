@@ -85,13 +85,18 @@ class HelloSystem : public SetupSystem {
 };
 
 
-class TilemapSystem : public SetupSystem {
+class TilemapSystem : public SetupSystem, public RenderSystem {
   private:
     SDL_Renderer* renderer;
 
     constexpr static int tilesCount = 2;
     constexpr static int tilesWidth = 4;
     constexpr static int tilesHeight = 3;
+
+    constexpr static int x = 0;
+    constexpr static int y = 0;
+    constexpr static int tileWidth = 24;
+    constexpr static int tileHeigth = 24;
 
     constexpr static char mmap[tilesWidth][tilesHeight] = {
       {0, 0, 0},
@@ -100,16 +105,17 @@ class TilemapSystem : public SetupSystem {
       {0, 0, 0}
     };
     const std::string files[tilesCount] = {
-      "assets/characters/fairy/front/1.png",
-      "assets/characters/fairy/front/1.png"
+      "assets/tiles/grass.png",
+      "assets/tiles/water.png"
     };
 
     std::map<char, SDL_Texture*> tiles;
-    std::vector<SDL_Texture*> tilemap;
+    SDL_Texture** tilemap;
 
   public:
     TilemapSystem(SDL_Renderer* r) : renderer(r) {
       std::cout << "Tile map system started" << std::endl;
+      tilemap = new SDL_Texture*[tilesWidth * tilesHeight];
     }
 
     ~TilemapSystem() {
@@ -140,11 +146,24 @@ class TilemapSystem : public SetupSystem {
                 texture
               )
             );
-            tilemap.push_back(texture);
+            tilemap[i*tilesWidth + j] = texture;
           } else {
-            tilemap.push_back(found->second);
+            tilemap[i*tilesWidth + j] = found->second;
           }
         }
+      }
+    }
+
+    void run(SDL_Renderer* r) override {
+      SDL_Rect rect = { x, y, tileWidth, tileHeigth };
+
+      for(int i = 0; i < tilesWidth; i++) {
+        for(int j = 0; j < tilesHeight; j++) {
+          SDL_RenderCopy(r, tilemap[i*tilesWidth + j], nullptr, &rect);
+          rect.x += tileWidth;
+        }
+        rect.x = 0;
+        rect.y += tileHeigth;
       }
     }
 };

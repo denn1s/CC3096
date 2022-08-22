@@ -23,7 +23,6 @@ Game::Game()
   frameDuration = (1.0f / FPS) * 1000.0f;  // how many mili seconds in one frame
   std::cout << "Game Object Constructed!" << std::endl;
 
-  SDL_RenderSetLogicalSize(renderer, 160, 144);
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 }
 
@@ -63,7 +62,9 @@ void Game::setup()
   player.addComponent<ColliderComponent>(ColliderComponent{glm::vec2(50, 50)});
 
   scene->addSetupSystem(new HelloSystem());
-  scene->addSetupSystem(new TilemapSystem(renderer));
+  TilemapSystem* tileMapSystem = new TilemapSystem(renderer);
+  scene->addSetupSystem(tileMapSystem);
+  scene->addRenderSystem(tileMapSystem);
 
   scene->setup();
 }
