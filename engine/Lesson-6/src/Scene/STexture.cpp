@@ -9,6 +9,7 @@ class STexture
 	public:
 		//Initializes variables
 		STexture(SDL_Renderer* gRenderer, SDL_Window* gWindow);
+		STexture(SDL_Renderer* gRenderer);
 
 		//Deallocates memory
 		~STexture();
@@ -42,6 +43,7 @@ class STexture
 		int getPitch();
     int getPixelCount();
     Uint32 getPixel(int x, int y);
+    Uint32 getPixel(int xy);
 
 	private:
 		//The actual hardware texture
@@ -56,7 +58,6 @@ class STexture
 		int mHeight;
 
     // renderer
-    SDL_Window *window;
     SDL_Renderer *renderer;
 };
 
@@ -70,9 +71,23 @@ STexture::STexture(SDL_Renderer* gRenderer, SDL_Window* gWindow)
 	mPitch = 0;
 
   renderer = gRenderer;
-  window = gWindow;
 
-  format = SDL_GetWindowPixelFormat(window);
+  format = SDL_GetWindowPixelFormat(gWindow);
+  mappingFormat = SDL_AllocFormat(format);
+}
+
+STexture::STexture(SDL_Renderer* gRenderer)
+{
+	//Initialize
+	mTexture = NULL;
+	mWidth = 0;
+	mHeight = 0;
+	mPixels = NULL;
+	mPitch = 0;
+
+  renderer = gRenderer;
+
+  format = SDL_PIXELFORMAT_RGBA8888;
   mappingFormat = SDL_AllocFormat(format);
 }
 
@@ -111,8 +126,8 @@ void STexture::load(std::string path)
 	SDL_Texture* newTexture = NULL;
 
 	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
-  SDL_Surface* formattedSurface = SDL_ConvertSurfaceFormat(loadedSurface, SDL_PIXELFORMAT_RGBA8888, 0);
-  newTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, loadedSurface->w, loadedSurface->h);
+  SDL_Surface* formattedSurface = SDL_ConvertSurfaceFormat(loadedSurface, format, 0);
+  newTexture = SDL_CreateTexture(renderer, format, SDL_TEXTUREACCESS_STREAMING, loadedSurface->w, loadedSurface->h);
   // newTexture = SDL_CreateTextureFromSurface(renderer, formattedSurface);
 
   SDL_LockTexture(newTexture, NULL, &mPixels, &mPitch);
@@ -170,7 +185,7 @@ void STexture::renderWithShader(int x, int y, int w, int h, Uint32(*func)(Uint32
 
   void* copyPixels;
   int copyPitch;
-  SDL_Texture* copyTexture = SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), SDL_TEXTUREACCESS_STREAMING, mWidth, mHeight);
+  SDL_Texture* copyTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, mWidth, mHeight);
 
   SDL_LockTexture(copyTexture, NULL, &copyPixels, &copyPitch);
   Uint32* copyPixelsInt = (Uint32*) copyPixels;
@@ -244,6 +259,16 @@ Uint32 STexture::getPixel(int x, int y)
   lockTexture();
   Uint32* pixels = getPixels();
   Uint32 pixel = pixels[(y * getPitch() / 4) + x];
+  unlockTexture();
+
+	return pixel;
+}
+
+Uint32 STexture::getPixel(int xy)
+{
+  lockTexture();
+  Uint32* pixels = getPixels();
+  Uint32 pixel = pixels[xy];
   unlockTexture();
 
 	return pixel;

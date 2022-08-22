@@ -2,9 +2,10 @@
 #include <iostream>
 #include <string>
 #include <SDL2/SDL.h>
-
+#include "./STexture.cpp"
 #include "./System.h"
 #include "./Components.hpp"
+
 
 class MovementSystem : public UpdateSystem {
   private:
@@ -152,6 +153,10 @@ class TilemapSystem : public SetupSystem, public RenderSystem {
           }
         }
       }
+
+      for(int i = 0; i < tilesCount; i++) {
+        SDL_FreeSurface(surfaces[i]);
+      }
     }
 
     void run(SDL_Renderer* r) override {
@@ -159,6 +164,92 @@ class TilemapSystem : public SetupSystem, public RenderSystem {
 
       for(int i = 0; i < tilesWidth; i++) {
         for(int j = 0; j < tilesHeight; j++) {
+          SDL_RenderCopy(r, tilemap[i*tilesWidth + j], nullptr, &rect);
+          rect.x += tileWidth;
+        }
+        rect.x = 0;
+        rect.y += tileHeigth;
+      }
+    }
+};
+
+
+class AdvancedTilemapSystem : public SetupSystem, public RenderSystem {
+  private:
+    SDL_Renderer* renderer;
+    SDL_Window* window;
+
+    constexpr static int tilesCount = 2;
+    constexpr static int x = 0;
+    constexpr static int y = 0;
+    constexpr static int tileWidth = 32;
+    constexpr static int tileHeigth = 32;
+
+    const std::string mmap = "assets/tilemaps/1.png";
+    const std::string files[tilesCount] = {
+      "assets/tiles/grass.png",
+      "assets/tiles/water.png"
+    };
+    std::map<char, SDL_Texture*> tiles;
+    SDL_Texture** tilemap;
+    int tilesWidth;
+    int tilesHeight;
+
+  public:
+    AdvancedTilemapSystem(SDL_Renderer* r, SDL_Window* w) : renderer(r), window(w) {
+      std::cout << "Tile map system started" << std::endl;
+    }
+
+    ~AdvancedTilemapSystem() {
+    }
+
+    // setup
+    void run() override {
+      SDL_Surface* surfaces[tilesCount];
+
+      for(int i = 0; i < tilesCount; i++) {
+        surfaces[i] = IMG_Load(files[i].c_str());
+      }
+  
+      STexture* t = new STexture(renderer, window);
+      t->load(mmap);
+      tilesWidth = t->getWidth();
+      tilesHeight = t->getHeight();
+      int totalTiles = tilesWidth * tilesHeight;
+
+      tilemap = new SDL_Texture*[totalTiles];
+
+      for(int i = 0; i < totalTiles; i++) {
+        Uint32 currentColor = t->getPixel(i);
+        int surfaceIndex = ((int)(currentColor >> 16) & 0xff) - 1;
+
+        auto found = tiles.find(surfaceIndex);
+        if (found == tiles.end()) {
+          SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surfaces[surfaceIndex]);
+          tiles.insert(
+            std::make_pair(
+              surfaceIndex,
+              texture
+            )
+          );
+          tilemap[i] = texture;
+        } else {
+          tilemap[i] = found->second;
+        }
+      }
+
+      delete t;
+
+      for(int i = 0; i < tilesCount; i++) {
+        SDL_FreeSurface(surfaces[i]);
+      }
+    }
+
+    void run(SDL_Renderer* r) override {
+      SDL_Rect rect = { x, y, tileWidth, tileHeigth };
+
+      for(int i = 0; i < tilesHeight; i++) {
+        for(int j = 0; j < tilesWidth; j++) {
           SDL_RenderCopy(r, tilemap[i*tilesWidth + j], nullptr, &rect);
           rect.x += tileWidth;
         }

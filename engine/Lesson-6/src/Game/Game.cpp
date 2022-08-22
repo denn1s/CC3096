@@ -6,7 +6,6 @@
 #include <entt/entt.hpp>
 
 #include "Game.h"
-#include "STexture.cpp"
 
 #include "Scene/Scene.h"
 
@@ -62,7 +61,7 @@ void Game::setup()
   player.addComponent<ColliderComponent>(ColliderComponent{glm::vec2(50, 50)});
 
   scene->addSetupSystem(new HelloSystem());
-  TilemapSystem* tileMapSystem = new TilemapSystem(renderer);
+  AdvancedTilemapSystem* tileMapSystem = new AdvancedTilemapSystem(renderer, window);
   scene->addSetupSystem(tileMapSystem);
   scene->addRenderSystem(tileMapSystem);
 
