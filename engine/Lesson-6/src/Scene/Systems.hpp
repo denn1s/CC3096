@@ -258,3 +258,81 @@ class AdvancedTilemapSystem : public SetupSystem, public RenderSystem {
       }
     }
 };
+
+
+class TileSetSystem : public SetupSystem, public RenderSystem {
+  private:
+    SDL_Renderer* renderer;
+    SDL_Window* window;
+
+    constexpr static int x = 0;
+    constexpr static int y = 0;
+    SDL_Rect* tilemap1;
+    constexpr static int tileWidth = 32;
+    constexpr static int tileHeigth = 32;
+
+    const std::string mmap = "assets/tilemaps/2.png";
+    const std::string files[3] = {
+      "assets/tilesets/Dirt.png",
+      "assets/tilesets/Grass.png",
+      "assets/tilesets/Hills.png",
+    };
+    SDL_Texture* tilesets[3];
+    int tilesWidth;
+    int tilesHeight;
+
+    SDL_Rect* tilemap1;
+    
+
+  public:
+    TileSetSystem(SDL_Renderer* r, SDL_Window* w) : renderer(r), window(w) {
+      std::cout << "Tile map system started" << std::endl;
+    }
+
+    ~TileSetSystem() {
+    }
+
+    // setup
+    void run() override {
+      // tilesets = new SDL_Texture*[3];
+
+      for(int i = 0; i < 3; i++) {
+        SDL_Surface* surface = IMG_Load(files[i].c_str());
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        tilesets[i] = texture;
+        SDL_FreeSurface(surface);
+      }
+  
+      STexture* t = new STexture(renderer, window);
+      t->load(mmap);
+      tilesWidth = t->getWidth();
+      tilesHeight = t->getHeight();
+      const int totalTiles = tilesWidth * tilesHeight;
+
+      tilemap = new SDL_Rect[totalTiles];
+
+      for(int i = 0; i < totalTiles; i++) {
+        Uint32 currentColor = t->getPixel(i);
+        int r = ((int)(currentColor >> 16) & 0xff);
+        int g = ((int)(currentColor >> 8) & 0xff);
+        int b = ((int)(currentColor & 0xff));
+        tilemap[i] = { r * 16, 0, 16, 16 };
+      }
+
+      delete t;
+    }
+
+    void run(SDL_Renderer* r) override {
+      SDL_Rect rect = { x, y, tileWidth, tileHeigth };
+
+      for(int i = 0; i < tilesHeight; i++) {
+        for(int j = 0; j < tilesWidth; j++) {
+          SDL_Rect src = tilemap[i*tilesWidth + j];
+          SDL_RenderCopy(r, tilesets[0], &src, &rect);
+          rect.x += tileWidth;
+        }
+        rect.x = 0;
+        rect.y += tileHeigth;
+      }
+    }
+};
