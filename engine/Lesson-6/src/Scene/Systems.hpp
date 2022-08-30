@@ -526,6 +526,145 @@ void autoTiling(STexture* t, int x, int y, Tile* tilemaptile) {
   }
 }
 
+bool sameTerrain(int x, int y, int w, int h, int currentTerrain, Uint32* pixels)
+{
+  if (x < 0 || x >= w || y < 0 || y > h) {
+    return false;
+  }
+  if ((int)((pixels[(y * w) + x] >> 16) & 0xff) >= currentTerrain) {
+    return true;
+  }
+  return false;
+}
+
+void autoTiling2(STexture* t, int x, int y, Tile* tilemaptile) {
+  Uint32 currentColor = t->getPixel(x, y);
+  int currentTerrain = ((int)(currentColor >> 16) & 0xff);
+  int currentTile = ((int)(currentColor >> 8) & 0xff);
+  int w = t->getWidth();
+  int h = t->getHeight();
+  Uint32* pixels = t->getPixels();
+
+  int mask = 0;
+  int otherTerrain = currentTerrain - 1;
+
+  // North
+  if (sameTerrain(x,  y - 1, w, h, currentTerrain, pixels)) {
+    mask += 1;
+  }
+
+  // West
+  if (sameTerrain(x - 1,  y, w, h, currentTerrain, pixels)) {
+    mask += 2;
+  }
+
+  // East
+  if (sameTerrain(x + 1,  y, w, h, currentTerrain, pixels)) {
+    mask += 4;
+  }
+
+  // South
+  if (sameTerrain(x, y + 1, w, h, currentTerrain, pixels)) {
+    mask += 8;
+  }
+
+  if (mask == 15) {
+    // North West
+    if (!sameTerrain(x - 1,  y - 1, w, h, currentTerrain, pixels)) {
+      mask = 16;
+    }
+    // North East
+    if (!sameTerrain(x + 1,  y - 1, w, h, currentTerrain, pixels)) {
+      mask = 17;
+    }
+    // South West
+    if (!sameTerrain(x - 1,  y + 1, w, h, currentTerrain, pixels)) {
+      mask = 18;
+    }
+    // South East
+    if (!sameTerrain(x + 1,  y + 1, w, h, currentTerrain, pixels)) {
+      mask = 19;
+    }
+  }
+
+  if (mask != 15) {
+    if (otherTerrain >= 0) {
+      tilemaptile->bottom = { otherTerrain, 0, 0 };
+    } else {
+      tilemaptile->bottom = { 0, 0, 0 };
+    }
+  }
+
+  switch(mask) {
+    case 0:
+      tilemaptile->top = { currentTerrain,  0, 96 };
+      break;
+    case 1:
+      tilemaptile->top = { currentTerrain,  0, 80 };
+      break;
+    case 2:
+      tilemaptile->top = { currentTerrain, 48, 96 };
+      break;
+    case 3:
+      tilemaptile->top = { currentTerrain, 48, 80 };
+      break;
+    case 4:
+      tilemaptile->top = { currentTerrain, 16, 96 };
+      break;
+    case 5:
+      tilemaptile->top = { currentTerrain, 16, 80 };
+      break;
+    case 6:
+      tilemaptile->top = { currentTerrain, 32, 96 };
+      break;
+    case 7:
+      tilemaptile->top = { currentTerrain, 32, 80 };
+      break;
+    case 8:
+      tilemaptile->top = { currentTerrain,  0, 48 };
+      break;
+    case 9:
+      tilemaptile->top = { currentTerrain,  0, 64 };
+      break;
+    case 10:
+      tilemaptile->top = { currentTerrain, 48, 48 };
+      break;
+    case 11:
+      tilemaptile->top = { currentTerrain, 48, 64 };
+      break;
+    case 12:
+      tilemaptile->top = { currentTerrain, 16, 48 };
+      break;
+    case 13:
+      tilemaptile->top = { currentTerrain, 16, 64 };
+      break;
+    case 14:
+      tilemaptile->top = { currentTerrain, 32, 48 };
+      break;
+    case 15:
+      tilemaptile->bottom = {
+        currentTerrain,
+        (currentTile*16) % t->getWidth(),
+        (currentTile*16) / t->getWidth()
+      };
+      break;
+    case 16:
+      tilemaptile->top = { currentTerrain, 80, 80 };
+      break;
+    case 17:
+      tilemaptile->top = { currentTerrain, 64, 80 };
+      break;
+    case 18:
+      tilemaptile->top = { currentTerrain, 80, 64 };
+      break;
+    case 19:
+      tilemaptile->top = { currentTerrain, 64, 64 };
+      break;
+    default:
+      std::cout << "missing: " << mask << std::endl;
+  }
+}
+
 
 class AutoTileSystem : public SetupSystem, public RenderSystem {
   private:
@@ -535,7 +674,7 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
     constexpr static int dstTileSize = 32;
     constexpr static int srcTileSize = 16;
     
-    const std::string mapfile = "assets/tilemaps/4.png";
+    const std::string mapfile = "assets/tilemaps/3.png";
     const std::string layerfiles[3] = {
       "assets/tilesets/Water.png",
       "assets/tilesets/Dirt.png",
@@ -576,7 +715,7 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
           int r = ((int)(currentColor >> 16) & 0xff);
           int g = ((int)(currentColor >> 8) & 0xff);
           
-          autoTiling(t, x, y, &tilemap[y*tilemapWidth + x]);
+          autoTiling2(t, x, y, &tilemap[y*tilemapWidth + x]);
         }
       }
       t->unlockTexture();
