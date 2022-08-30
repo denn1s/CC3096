@@ -267,7 +267,6 @@ class TileSetSystem : public SetupSystem, public RenderSystem {
 
     constexpr static int x = 0;
     constexpr static int y = 0;
-    SDL_Rect* tilemap1;
     constexpr static int tileWidth = 32;
     constexpr static int tileHeigth = 32;
 
@@ -281,7 +280,7 @@ class TileSetSystem : public SetupSystem, public RenderSystem {
     int tilesWidth;
     int tilesHeight;
 
-    SDL_Rect* tilemap1;
+    SDL_Rect* tilemap;
     
 
   public:
@@ -333,6 +332,283 @@ class TileSetSystem : public SetupSystem, public RenderSystem {
         }
         rect.x = 0;
         rect.y += tileHeigth;
+      }
+    }
+};
+
+struct Terrain {
+  int index;
+  int x;
+  int y;
+};
+
+struct Tile {
+  Terrain bottom{-1, 0, 0};
+  Terrain top{-1, 0, 0};
+};
+
+class AdvancedTileSetSystem : public SetupSystem, public RenderSystem {
+  private:
+    SDL_Renderer* renderer;
+    SDL_Window* window;
+
+    constexpr static int dstTileSize = 32;
+    constexpr static int srcTileSize = 16;
+    
+    const std::string mapfile = "assets/tilemaps/3.png";
+    const std::string layerfiles[3] = {
+      "assets/tilesets/Water.png",
+      "assets/tilesets/Dirt.png",
+      "assets/tilesets/Grass.png",
+    };
+
+    SDL_Texture* tilesets[3];
+
+    Tile* tilemap;
+    int tilemapWidth;
+    int tilemapHeight;
+    
+  public:
+    AdvancedTileSetSystem(SDL_Renderer* r, SDL_Window* w) : renderer(r), window(w) {}
+
+    ~AdvancedTileSetSystem() {}
+
+    // setup
+    void run() override {
+      for(int i = 0; i < 3; i++) {
+        SDL_Surface* surface = IMG_Load(layerfiles[i].c_str());
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        tilesets[i] = texture;
+        SDL_FreeSurface(surface);
+      }
+
+      STexture* t = new STexture(renderer, window);
+      t->load(mapfile);
+      tilemapWidth = t->getWidth();
+      tilemapHeight = t->getHeight();      
+      tilemap = new Tile[tilemapWidth * tilemapHeight];
+
+      t->lockTexture();
+      for(int y = 0; y < tilemapHeight; y++) {
+        for(int x = 0; x < tilemapWidth; x++) {
+          Uint32 currentColor = t->getPixel(x, y);
+          int r = ((int)(currentColor >> 16) & 0xff);
+          int g = ((int)(currentColor >> 8) & 0xff);
+          // std::cout << "rg: " << r << ", " << g << std::endl;
+          tilemap[y*tilemapWidth + x].bottom = { r, g * srcTileSize, 0};
+        }
+      }
+      t->unlockTexture();
+      delete t;
+    }
+
+    void run(SDL_Renderer* r) override {
+      SDL_Rect dst = { 0, 0, dstTileSize, dstTileSize };
+
+      for(int y = 0; y < tilemapHeight; y++) {
+        for(int x = 0; x < tilemapWidth; x++) {
+          Tile tile = tilemap[y*tilemapWidth + x];
+          SDL_Rect src = { tile.bottom.x, tile.bottom.y, srcTileSize, srcTileSize };
+          SDL_RenderCopy(r,
+            tilesets[tile.bottom.index],
+            &src,
+            &dst
+          );
+          dst.x += dstTileSize;
+        }
+        dst.x = 0;
+        dst.y += dstTileSize;
+      }
+    }
+};
+
+void autoTiling(STexture* t, int x, int y, Tile* tilemaptile) {
+  Uint32 currentColor = t->getPixel(x, y);
+  int currentTerrain = ((int)(currentColor >> 16) & 0xff);
+  int currentTile = ((int)(currentColor >> 8) & 0xff);
+
+  int mask = 0;
+  int otherTerrain = 0;
+
+  // North
+  if (y - 1 >= 0) {
+    int o = ((int)(t->getPixel(x, y - 1) >> 16) & 0xff);
+    if (o == currentTerrain) {
+      mask += 1;
+    }
+  }
+
+  // West
+  if (x - 1 >= 0) {
+    int o = ((int)(t->getPixel(x - 1, y) >> 16) & 0xff);
+    if (o == currentTerrain) {
+      mask += 2;
+    }
+  }
+
+  // East
+  if (x + 1 < t->getWidth()) {
+    int o = ((int)(t->getPixel(x + 1, y) >> 16) & 0xff);
+    if (o == currentTerrain) {
+      mask += 4;
+    }
+  }
+
+  // South
+  if (y + 1 < t->getHeight()) {
+    int o = ((int)(t->getPixel(x, y + 1) >> 16) & 0xff);
+    if (o == currentTerrain) {
+      mask += 8;
+    }
+  }
+
+  if (mask != 15) {
+    tilemaptile->bottom = { otherTerrain, 0, 0 };
+  }
+
+  switch(mask) {
+    case 0:
+      tilemaptile->top = { currentTerrain,  0, 96 };
+      break;
+    case 1:
+      tilemaptile->top = { currentTerrain,  0, 80 };
+      break;
+    case 2:
+      tilemaptile->top = { currentTerrain, 48, 96 };
+      break;
+    case 3:
+      tilemaptile->top = { currentTerrain, 48, 80 };
+      break;
+    case 4:
+      tilemaptile->top = { currentTerrain, 16, 96 };
+      break;
+    case 5:
+      tilemaptile->top = { currentTerrain, 16, 80 };
+      break;
+    case 6:
+      tilemaptile->top = { currentTerrain, 32, 96 };
+      break;
+    case 7:
+      tilemaptile->top = { currentTerrain, 32, 80 };
+      break;
+    case 8:
+      tilemaptile->top = { currentTerrain,  0, 48 };
+      break;
+    case 9:
+      tilemaptile->top = { currentTerrain,  0, 64 };
+      break;
+    case 10:
+      tilemaptile->top = { currentTerrain, 48, 48 };
+      break;
+    case 11:
+      tilemaptile->top = { currentTerrain, 48, 64 };
+      break;
+    case 12:
+      tilemaptile->top = { currentTerrain, 16, 48 };
+      break;
+    case 13:
+      tilemaptile->top = { currentTerrain, 16, 64 };
+      break;
+    case 14:
+      tilemaptile->top = { currentTerrain, 32, 48 };
+      break;
+    case 15:
+      tilemaptile->bottom = {
+        currentTerrain,
+        (currentTile*16) % t->getWidth(),
+        (currentTile*16) / t->getWidth()
+      };
+      // tilemaptile->bottom = { currentTerrain, currentTile*16, 0 };
+      // tilemaptile->top = { currentTerrain, 0, 0 };
+      break;
+    default:
+      std::cout << "missing: " << mask << std::endl;
+  }
+}
+
+
+class AutoTileSystem : public SetupSystem, public RenderSystem {
+  private:
+    SDL_Renderer* renderer;
+    SDL_Window* window;
+
+    constexpr static int dstTileSize = 32;
+    constexpr static int srcTileSize = 16;
+    
+    const std::string mapfile = "assets/tilemaps/4.png";
+    const std::string layerfiles[3] = {
+      "assets/tilesets/Water.png",
+      "assets/tilesets/Dirt.png",
+      "assets/tilesets/Grass.png",
+    };
+
+    SDL_Texture* tilesets[3];
+
+    Tile* tilemap;
+    int tilemapWidth;
+    int tilemapHeight;
+    
+  public:
+    AutoTileSystem(SDL_Renderer* r, SDL_Window* w) : renderer(r), window(w) {}
+
+    ~AutoTileSystem() {}
+
+
+    // setup
+    void run() override {
+      for(int i = 0; i < 3; i++) {
+        SDL_Surface* surface = IMG_Load(layerfiles[i].c_str());
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        tilesets[i] = texture;
+        SDL_FreeSurface(surface);
+      }
+
+      STexture* t = new STexture(renderer, window);
+      t->load(mapfile);
+      tilemapWidth = t->getWidth();
+      tilemapHeight = t->getHeight();      
+      tilemap = new Tile[tilemapWidth * tilemapHeight];
+
+      t->lockTexture();
+      for(int y = 0; y < tilemapHeight; y++) {
+        for(int x = 0; x < tilemapWidth; x++) {
+          Uint32 currentColor = t->getPixel(x, y);
+          int r = ((int)(currentColor >> 16) & 0xff);
+          int g = ((int)(currentColor >> 8) & 0xff);
+          
+          autoTiling(t, x, y, &tilemap[y*tilemapWidth + x]);
+        }
+      }
+      t->unlockTexture();
+      delete t;
+    }
+
+    // autoTiling(t, x, y, &tilemap[i]);
+
+    void run(SDL_Renderer* r) override {
+      SDL_Rect dst = { 0, 0, dstTileSize, dstTileSize };
+
+      for(int y = 0; y < tilemapHeight; y++) {
+        for(int x = 0; x < tilemapWidth; x++) {
+          Tile tile = tilemap[y*tilemapWidth + x];
+          SDL_Rect src = { tile.bottom.x, tile.bottom.y, srcTileSize, srcTileSize };
+          SDL_RenderCopy(r,
+            tilesets[tile.bottom.index],
+            &src,
+            &dst
+          );
+          if (tile.top.index != -1) {
+            SDL_Rect src = { tile.top.x, tile.top.y, srcTileSize, srcTileSize };
+            SDL_RenderCopy(r,
+              tilesets[tile.top.index],
+              &src,
+              &dst
+            );
+          }
+          dst.x += dstTileSize;
+        }
+        dst.x = 0;
+        dst.y += dstTileSize;
       }
     }
 };

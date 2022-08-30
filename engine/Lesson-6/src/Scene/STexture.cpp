@@ -256,10 +256,10 @@ int STexture::getPixelCount()
 
 Uint32 STexture::getPixel(int x, int y)
 {
-  lockTexture();
+  //lockTexture();
   Uint32* pixels = getPixels();
   Uint32 pixel = pixels[(y * getPitch() / 4) + x];
-  unlockTexture();
+  //unlockTexture();
 
 	return pixel;
 }

@@ -61,7 +61,7 @@ void Game::setup()
   player.addComponent<ColliderComponent>(ColliderComponent{glm::vec2(50, 50)});
 
   scene->addSetupSystem(new HelloSystem());
-  TileSetSystem* tilesetSystem = new TileSetSystem(renderer, window);
+  AutoTileSystem* tilesetSystem = new AutoTileSystem(renderer, window);
   scene->addSetupSystem(tilesetSystem);
   scene->addRenderSystem(tilesetSystem);
 
