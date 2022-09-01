@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include <SDL2/SDL.h>
+#include <glm/glm.hpp>
 #include <iostream>
 #include <string>
 #include <entt/entt.hpp>
@@ -44,7 +45,8 @@ class Scene {
 
 
     Entity* getMainCamera();
-    void setMainCamera(Entity* camera);
+    void setMainCamera(Entity camera);
+    glm::mat4 getMainCameraViewProj();
 };
 
 #endif

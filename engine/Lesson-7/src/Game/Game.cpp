@@ -4,7 +4,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <entt/entt.hpp>
-#include <glm/gtx/string_cast.hpp>
 
 #include "Game.h"
 
@@ -37,7 +36,6 @@ void Game::init(const char* title, int width, int height)
   {
     window = SDL_CreateWindow(title, 0, 0, width, height, 0);
     renderer = SDL_CreateRenderer(window, -1, 0);
-    std::cout << "REN" << renderer << std::endl;
     IMG_Init(IMG_INIT_PNG);
     std::cout << "Game Start!" << std::endl;
 
@@ -57,7 +55,7 @@ void Game::setup()
 {
   scene = new Scene("Level1");
 
-  scene->addSetupSystem(new HelloSystem());
+  scene->addSetupSystem(new CameraSetupSystem());
   AutoTileSystem* tilesetSystem = new AutoTileSystem(renderer, window);
   scene->addSetupSystem(tilesetSystem);
   scene->addRenderSystem(tilesetSystem);

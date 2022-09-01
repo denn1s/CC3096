@@ -8,10 +8,6 @@
 class Entity
 {
   public:
-    Entity() {
-      std::cout << "Trash Created" << std::endl;
-    }
-
     Entity(entt::entity e, Scene* s) {
       std::cout << "Entity Created" << std::endl;
 
@@ -33,10 +29,16 @@ class Entity
       scene->r.remove<T>(handle);
     }
 
+    /*
     template<typename T>
     T& getComponent() {
-      return scene->r.get<T>(handle);
+      std::cout << "We will fail" << std::endl;
+      const auto view = scene->r.view<T>();
+      for (const entt::entity e : view) {
+        return view.get<T>(e);
+      }
     }
+    */
 
   private:
     entt::entity handle;

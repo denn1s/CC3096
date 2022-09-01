@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <SDL2/SDL.h>
 
 #include "Scene.h"
@@ -12,14 +13,7 @@
 
 Scene::Scene(const std::string& name)
 {
-  Entity camera = createEntity();
-  // const glm::mat4 cameraView = camera.getComponent<TransformComponent>().getTransform();
-  // const glm::mat4 cameraProjection = camera.addComponent<CameraComponent>(CameraComponent{glm::mat4(1.0f)}).projection;
-  camera.addComponent<CameraComponent>(CameraComponent{glm::mat4(1.0f)});
-
-  mainCamera = &camera;
-
-  std::cout << "Scene " << name << "constructed!" << std::endl;
+  std::cout << "Scene " << name << " constructed!" << std::endl;
 }
 
 Scene::~Scene()
@@ -99,7 +93,38 @@ Entity* Scene::getMainCamera()
   return mainCamera;
 }
 
-void Scene::setMainCamera(Entity* camera)
+void Scene::setMainCamera(Entity camera)
 {
-  mainCamera = camera;
+  std::cout << "Set Main Camera" << std::endl;
+  mainCamera = &camera;
+  std::cout << "Main camera: " << &mainCamera << std::endl;
+}
+
+glm::mat4 Scene::getMainCameraViewProj()
+{
+  std::cout << "Main camera2: " << &mainCamera << std::endl;
+
+  const auto view = r.view<CameraComponent>();
+  for (const entt::entity e : view) {
+    auto c = view.get<CameraComponent>(e);
+    std::cout << "C: " << glm::to_string(c.projection) << std::endl;
+  }
+  
+  /*
+  std::cout << "A: " << glm::to_string(transformComponent.translate) << std::endl;
+  
+  glm::mat4 translation = glm::translate(glm::mat4(1.0f), transformComponent.translate);
+  glm::mat4 rotation = glm::toMat4(glm::quat(transformComponent.rotate));
+  glm::mat4 scaling = glm::scale(glm::mat4(1.0f), transformComponent.scale);
+  glm::mat4 cameraTransform = translation * rotation * scaling;
+  std::cout << "T: " << glm::to_string(cameraTransform) << std::endl;
+
+  const glm::mat4 cameraView = glm::inverse(cameraTransform);
+  std::cout << "V: " << glm::to_string(cameraView) << std::endl;
+
+  const glm::mat4 cameraProjection = mainCamera->getComponent<CameraComponent>().projection;
+
+  return cameraProjection * cameraView;
+  */
+  return glm::mat4(1);
 }
