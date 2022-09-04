@@ -15,6 +15,13 @@ class Entity
       scene = s;
     }
 
+    Entity(const Entity& copy) {
+      std::cout << "Entity Copied" << std::endl;
+
+      handle = copy.handle;
+      scene = copy.scene;
+    }
+
     ~Entity() {
       std::cout << "Entity Destroyed" << std::endl;
     }
@@ -29,19 +36,14 @@ class Entity
       scene->r.remove<T>(handle);
     }
 
-    /*
     template<typename T>
     T& getComponent() {
-      std::cout << "We will fail" << std::endl;
-      const auto view = scene->r.view<T>();
-      for (const entt::entity e : view) {
-        return view.get<T>(e);
-      }
+      return scene->r.get<T>(handle);
     }
-    */
+
+    entt::entity handle;
 
   private:
-    entt::entity handle;
     Scene* scene;
 };
 

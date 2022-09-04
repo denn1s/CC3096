@@ -19,7 +19,9 @@ class Scene {
     std::vector<InputSystem*> inputSystems;
     std::vector<UpdateSystem*> updateSystems;
     std::vector<RenderSystem*> renderSystems;
+
     Entity* mainCamera;
+    glm::mat4 mainCameraTransform;
 
   public:
     Scene(const std::string&);
@@ -44,9 +46,10 @@ class Scene {
     void render(SDL_Renderer* renderer);
 
 
-    Entity* getMainCamera();
-    void setMainCamera(Entity camera);
-    glm::mat4 getMainCameraViewProj();
+    // Entity* getMainCamera();
+    // void setMainCamera(Entity* camera);
+    void updateCameraTransform();
+    glm::mat4 getCameraTransform();
 };
 
 #endif

@@ -55,7 +55,7 @@ void Game::setup()
 {
   scene = new Scene("Level1");
 
-  scene->addSetupSystem(new CameraSetupSystem());
+  // scene->addSetupSystem(new CameraSetupSystem());
   AutoTileSystem* tilesetSystem = new AutoTileSystem(renderer, window);
   scene->addSetupSystem(tilesetSystem);
   scene->addRenderSystem(tilesetSystem);

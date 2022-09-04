@@ -10,15 +10,18 @@
 #include "./System.h"
 #include "./Components.hpp"
 
-
+/*
 class CameraSetupSystem : public SetupSystem {
   public:
     void run() override {
         Entity camera = scene->createEntity();
         camera.addComponent<CameraComponent>(CameraComponent{glm::mat4(1.0f)});
-        scene->setMainCamera(camera);
+        std::cout << "Main Camera Created: " << &camera << std::endl;
+
+        scene->setMainCamera(new Entity(camera));
     }
 };
+*/
 
 struct Terrain {
   int index;
