@@ -20,244 +20,186 @@ class CameraSetupSystem : public SetupSystem {
     }
 };
 
+
 struct Terrain {
-  int index;
-  int x;
-  int y;
+    int index;  // 0 water, 1 dirt, 2 grass
+    int x;
+    int y;
 };
 
 struct Tile {
-  Terrain bottom{-1, 0, 0};
-  Terrain top{-1, 0, 0};
+    Terrain bottom{-1, 0, 0};
+    Terrain top{-1, 0, 0};
 };
 
-bool sameTerrain(int x, int y, int w, int h, int currentTerrain, Uint32* pixels)
-{
-  if (x < 0 || x >= w || y < 0 || y > h) {
+bool sameTerrain(int x, int y, int w, int h, int currentTerrain, Uint32* pixels) {
+    if (x < 0 || x >= w || y < 0 || y >= h) {
+        return false;
+    }
+
+    int otherTerrain = ((int)(pixels[y * w + x] >> 16) & 0xff);
+
+    if (otherTerrain >= currentTerrain) {
+        return true;
+    }
     return false;
-  }
-  if ((int)((pixels[(y * w) + x] >> 16) & 0xff) >= currentTerrain) {
-    return true;
-  }
-  return false;
 }
 
-void autoTiling2(STexture* t, int x, int y, Tile* tilemaptile) {
-  Uint32 currentColor = t->getPixel(x, y);
-  int currentTerrain = ((int)(currentColor >> 16) & 0xff);
-  int currentTile = ((int)(currentColor >> 8) & 0xff);
-  int w = t->getWidth();
-  int h = t->getHeight();
-  Uint32* pixels = t->getPixels();
+std::map<int, std::pair<int, int>> m = {
+    { 0, {0, 96} },
+    { 1, {0, 80} },
+    { 2, {48, 96} },
+    { 3, {48, 80} },
+    { 4, {16, 96} },
+    { 5, {16, 80} },
+    { 6, {32, 96} },
+    { 7, {32, 80} },
+    { 8, {0, 48} },
+    { 9, {0, 64} },
+    { 10, {48, 48} },
+    { 11, {48, 64} },
+    { 12, {16, 48} },
+    { 13, {16, 64} },
+    { 14, {32, 48} },
+    { 16, {80, 80} },
+    { 17, {64, 80} },
+    { 18, {80, 64} },
+    { 19, {64, 64} },
+};
 
-  int mask = 0;
-  int otherTerrain = currentTerrain - 1;
+void autotile(STexture *t, int x, int y, Tile* tilemaptile) {
+    Uint32* pixels = t->getPixels();
+    int w = t->getWidth();
+    int h = t->getHeight();
+    int currentTerrain = ((int)(pixels[y * w + x] >> 16) & 0xff);
+    
+    if (currentTerrain == 0) {
+        tilemaptile->bottom = { 0, 0, 0 };
+        return;
+    } 
 
-  // North
-  if (sameTerrain(x,  y - 1, w, h, currentTerrain, pixels)) {
-    mask += 1;
-  }
+    int otherTerrain = currentTerrain - 1;
+    int mask = 0;
 
-  // West
-  if (sameTerrain(x - 1,  y, w, h, currentTerrain, pixels)) {
-    mask += 2;
-  }
-
-  // East
-  if (sameTerrain(x + 1,  y, w, h, currentTerrain, pixels)) {
-    mask += 4;
-  }
-
-  // South
-  if (sameTerrain(x, y + 1, w, h, currentTerrain, pixels)) {
-    mask += 8;
-  }
-
-  if (mask == 15) {
-    // North West
-    if (!sameTerrain(x - 1,  y - 1, w, h, currentTerrain, pixels)) {
-      mask = 16;
+    // North
+    if (sameTerrain(x, y - 1, w, h, currentTerrain, pixels)) {
+        mask += 1;
     }
-    // North East
-    if (!sameTerrain(x + 1,  y - 1, w, h, currentTerrain, pixels)) {
-      mask = 17;
+    // West
+    if (sameTerrain(x - 1, y, w, h, currentTerrain, pixels)) {
+        mask += 2;
     }
-    // South West
-    if (!sameTerrain(x - 1,  y + 1, w, h, currentTerrain, pixels)) {
-      mask = 18;
+    // East
+    if (sameTerrain(x + 1, y, w, h, currentTerrain, pixels)) {
+        mask += 4;
     }
-    // South East
-    if (!sameTerrain(x + 1,  y + 1, w, h, currentTerrain, pixels)) {
-      mask = 19;
+    // South
+    if (sameTerrain(x, y + 1, w, h, currentTerrain, pixels)) {
+        mask += 8;
     }
-  }
-
-  if (mask != 15) {
-    if (otherTerrain >= 0) {
-      tilemaptile->bottom = { otherTerrain, 0, 0 };
+    
+    if (mask != 15) {
+        tilemaptile->bottom = { otherTerrain, 0, 0 };
     } else {
-      tilemaptile->bottom = { 0, 0, 0 };
-    }
-  }
+        // NorthWest
+        if (!sameTerrain(x - 1, y - 1, w, h, currentTerrain, pixels)) {
+            mask = 16;
+        }
+        // NortEast
+        if (!sameTerrain(x + 1, y - 1, w, h, currentTerrain, pixels)) {
+            mask = 17;
+        }
+        // SouthWest
+        if (!sameTerrain(x - 1, y + 1, w, h, currentTerrain, pixels)) {
+            mask = 18;
+        }
+        // SouthEast
+        if (!sameTerrain(x + 1, y + 1, w, h, currentTerrain, pixels)) {
+            mask = 19;
+        }
 
-  switch(mask) {
-    case 0:
-      tilemaptile->top = { currentTerrain,  0, 96 };
-      break;
-    case 1:
-      tilemaptile->top = { currentTerrain,  0, 80 };
-      break;
-    case 2:
-      tilemaptile->top = { currentTerrain, 48, 96 };
-      break;
-    case 3:
-      tilemaptile->top = { currentTerrain, 48, 80 };
-      break;
-    case 4:
-      tilemaptile->top = { currentTerrain, 16, 96 };
-      break;
-    case 5:
-      tilemaptile->top = { currentTerrain, 16, 80 };
-      break;
-    case 6:
-      tilemaptile->top = { currentTerrain, 32, 96 };
-      break;
-    case 7:
-      tilemaptile->top = { currentTerrain, 32, 80 };
-      break;
-    case 8:
-      tilemaptile->top = { currentTerrain,  0, 48 };
-      break;
-    case 9:
-      tilemaptile->top = { currentTerrain,  0, 64 };
-      break;
-    case 10:
-      tilemaptile->top = { currentTerrain, 48, 48 };
-      break;
-    case 11:
-      tilemaptile->top = { currentTerrain, 48, 64 };
-      break;
-    case 12:
-      tilemaptile->top = { currentTerrain, 16, 48 };
-      break;
-    case 13:
-      tilemaptile->top = { currentTerrain, 16, 64 };
-      break;
-    case 14:
-      tilemaptile->top = { currentTerrain, 32, 48 };
-      break;
-    case 15:
-      tilemaptile->bottom = {
-        currentTerrain,
-        (currentTile*16) % t->getWidth(),
-        (currentTile*16) / t->getWidth()
-      };
-      break;
-    case 16:
-      tilemaptile->top = { currentTerrain, 80, 80 };
-      break;
-    case 17:
-      tilemaptile->top = { currentTerrain, 64, 80 };
-      break;
-    case 18:
-      tilemaptile->top = { currentTerrain, 80, 64 };
-      break;
-    case 19:
-      tilemaptile->top = { currentTerrain, 64, 64 };
-      break;
-    default:
-      std::cout << "missing: " << mask << std::endl;
-  }
+        if (mask == 15) {
+            tilemaptile->bottom = { currentTerrain, 0, 0 };
+        } else {
+            tilemaptile->bottom = { otherTerrain, 0, 0 };
+        }
+    }
+
+    auto transitionTile = m[mask];
+    tilemaptile->top = { currentTerrain, transitionTile.first, transitionTile.second };
 }
 
+class TileMapSystem : public SetupSystem, public RenderSystem {
+    private:
+        SDL_Renderer* renderer;
+        SDL_Window* window;
+        
+        const static int dstTileSize = 32;
+        const static int srcTileSize = 16;
 
-class AutoTileSystem : public SetupSystem, public RenderSystem {
-  private:
-    SDL_Renderer* renderer;
-    SDL_Window* window;
+        const std::string mapfile = "./assets/terrain-map.png";        
+        const std::string layerfiles[3] = {
+            "./assets/Water.png",
+            "./assets/Dirt.png",
+            "./assets/Grass.png",
+        };
 
-    constexpr static int dstTileSize = 32;
-    constexpr static int srcTileSize = 16;
-    
-    const std::string mapfile = "assets/tilemaps/3.png";
-    const std::string layerfiles[3] = {
-      "assets/tilesets/Water.png",
-      "assets/tilesets/Dirt.png",
-      "assets/tilesets/Grass.png",
-    };
+        SDL_Texture* tilesets[3];
+        Tile* tilemap;
+        int tilemapWidth;
+        int tilemapHeight;
 
-    SDL_Texture* tilesets[3];
+    public:
+        TileMapSystem(SDL_Renderer* r, SDL_Window* w) : renderer(r), window(w) {}
 
-    Tile* tilemap;
-    int tilemapWidth;
-    int tilemapHeight;
-    
-  public:
-    AutoTileSystem(SDL_Renderer* r, SDL_Window* w) : renderer(r), window(w) {}
+        ~TileMapSystem() {}
 
-    ~AutoTileSystem() {}
+        void run() override {
+            for(int i = 0; i < 3; i++) {
+                SDL_Surface* surface = IMG_Load(layerfiles[i].c_str());
+                tilesets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+                SDL_FreeSurface(surface);
+            }
 
 
-    // setup
-    void run() override {
-      for(int i = 0; i < 3; i++) {
-        SDL_Surface* surface = IMG_Load(layerfiles[i].c_str());
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-        tilesets[i] = texture;
-        SDL_FreeSurface(surface);
-      }
+            STexture* mapImage = new STexture(renderer, window);
+            mapImage->load(mapfile);
+            tilemapWidth = mapImage->getWidth();
+            tilemapHeight = mapImage->getHeight();
+            tilemap = new Tile[tilemapWidth * tilemapHeight];
 
-      STexture* t = new STexture(renderer, window);
-      t->load(mapfile);
-      tilemapWidth = t->getWidth();
-      tilemapHeight = t->getHeight();      
-      tilemap = new Tile[tilemapWidth * tilemapHeight];
+            mapImage->lockTexture();
+            for(int y = 0; y < tilemapHeight; y++) {
+                for(int x = 0; x < tilemapWidth; x++) {
+                    autotile(mapImage, x, y, &tilemap[y * tilemapWidth + x]);
+                }
+            }
+            mapImage->unlockTexture();
 
-      t->lockTexture();
-      for(int y = 0; y < tilemapHeight; y++) {
-        for(int x = 0; x < tilemapWidth; x++) {
-          Uint32 currentColor = t->getPixel(x, y);
-          int r = ((int)(currentColor >> 16) & 0xff);
-          int g = ((int)(currentColor >> 8) & 0xff);
-          
-          autoTiling2(t, x, y, &tilemap[y*tilemapWidth + x]);
+            delete mapImage;
+
         }
-      }
-      t->unlockTexture();
-      delete t;
-    }
 
-    // autoTiling(t, x, y, &tilemap[i]);
+        void run(SDL_Renderer* r) override {
+            SDL_Rect dst = { 0, 0, dstTileSize, dstTileSize };
 
-    void run(SDL_Renderer* r) override {
-      glm::mat4 viewProj = RenderSystem::scene->getMainCameraViewProj();
-      // Entity* c = RenderSystem::scene->getMainCamera();
-      
-      SDL_Rect dst = { 0, 0, dstTileSize, dstTileSize };
-
-      for(int y = 0; y < tilemapHeight; y++) {
-        for(int x = 0; x < tilemapWidth; x++) {
-          Tile tile = tilemap[y*tilemapWidth + x];
-          SDL_Rect src = { tile.bottom.x, tile.bottom.y, srcTileSize, srcTileSize };
-          SDL_RenderCopy(r,
-            tilesets[tile.bottom.index],
-            &src,
-            &dst
-          );
-          if (tile.top.index != -1) {
-            SDL_Rect src = { tile.top.x, tile.top.y, srcTileSize, srcTileSize };
-            SDL_RenderCopy(r,
-              tilesets[tile.top.index],
-              &src,
-              &dst
-            );
-          }
-          dst.x += dstTileSize;
-        }
-        dst.x = 0;
-        dst.y += dstTileSize;
-      }
-    }
+            for(int y = 0; y < tilemapHeight; y++) {
+                for(int x = 0; x < tilemapWidth; x++) {
+                    Tile t = tilemap[y * tilemapWidth + x];
+                    if (t.bottom.index > -1) {
+                        SDL_Rect src = { t.bottom.x, t.bottom.y, srcTileSize, srcTileSize };
+                        SDL_RenderCopy(r, tilesets[t.bottom.index], &src, &dst);                        
+                    }
+                    if (t.top.index > -1) {
+                        SDL_Rect src = { t.top.x, t.top.y, srcTileSize, srcTileSize };
+                        SDL_RenderCopy(r, tilesets[t.top.index], &src, &dst);                        
+                    }
+                    dst.x += dstTileSize;
+                }
+                dst.x = 0;
+                dst.y += dstTileSize;
+            }
+        } 
 };
 
 #endif
