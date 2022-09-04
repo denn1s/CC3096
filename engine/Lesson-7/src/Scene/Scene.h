@@ -21,7 +21,7 @@ class Scene {
     std::vector<RenderSystem*> renderSystems;
 
     Entity* mainCamera;
-    glm::mat4 mainCameraTransform;
+    glm::vec3 mainCameraTransform;
 
   public:
     Scene(const std::string&);
@@ -45,11 +45,8 @@ class Scene {
     void update(double dT);
     void render(SDL_Renderer* renderer);
 
-
-    // Entity* getMainCamera();
-    // void setMainCamera(Entity* camera);
     void updateCameraTransform();
-    glm::mat4 getCameraTransform();
+    glm::vec3 getCameraTransform();
 };
 
 #endif

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include <SDL2/SDL.h>
-#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/io.hpp>
 #include "./STexture.cpp"
 #include "./System.h"
 #include "./Components.hpp"
@@ -132,7 +132,7 @@ void autotile(STexture *t, int x, int y, Tile* tilemaptile) {
     tilemaptile->top = { currentTerrain, transitionTile.first, transitionTile.second };
 }
 
-class TileMapSystem : public SetupSystem, public RenderSystem {
+class AutoTileSystem : public SetupSystem, public RenderSystem {
     private:
         SDL_Renderer* renderer;
         SDL_Window* window;
@@ -140,11 +140,11 @@ class TileMapSystem : public SetupSystem, public RenderSystem {
         const static int dstTileSize = 32;
         const static int srcTileSize = 16;
 
-        const std::string mapfile = "./assets/terrain-map.png";        
+        const std::string mapfile = "./assets/tilemaps/6.png";        
         const std::string layerfiles[3] = {
-            "./assets/Water.png",
-            "./assets/Dirt.png",
-            "./assets/Grass.png",
+            "./assets/tilesets/Water.png",
+            "./assets/tilesets/Dirt.png",
+            "./assets/tilesets/Grass.png",
         };
 
         SDL_Texture* tilesets[3];
@@ -153,9 +153,9 @@ class TileMapSystem : public SetupSystem, public RenderSystem {
         int tilemapHeight;
 
     public:
-        TileMapSystem(SDL_Renderer* r, SDL_Window* w) : renderer(r), window(w) {}
+        AutoTileSystem(SDL_Renderer* r, SDL_Window* w) : renderer(r), window(w) {}
 
-        ~TileMapSystem() {}
+        ~AutoTileSystem() {}
 
         void run() override {
             for(int i = 0; i < 3; i++) {
@@ -184,24 +184,29 @@ class TileMapSystem : public SetupSystem, public RenderSystem {
         }
 
         void run(SDL_Renderer* r) override {
-            SDL_Rect dst = { 0, 0, dstTileSize, dstTileSize };
+          SDL_Rect dst = { 
+            -RenderSystem::scene->getCameraTransform().x,
+            -RenderSystem::scene->getCameraTransform().y,
+            32,
+            32
+          };
 
-            for(int y = 0; y < tilemapHeight; y++) {
-                for(int x = 0; x < tilemapWidth; x++) {
-                    Tile t = tilemap[y * tilemapWidth + x];
-                    if (t.bottom.index > -1) {
-                        SDL_Rect src = { t.bottom.x, t.bottom.y, srcTileSize, srcTileSize };
-                        SDL_RenderCopy(r, tilesets[t.bottom.index], &src, &dst);                        
-                    }
-                    if (t.top.index > -1) {
-                        SDL_Rect src = { t.top.x, t.top.y, srcTileSize, srcTileSize };
-                        SDL_RenderCopy(r, tilesets[t.top.index], &src, &dst);                        
-                    }
-                    dst.x += dstTileSize;
-                }
-                dst.x = 0;
-                dst.y += dstTileSize;
+          for(int y = 0; y < tilemapHeight; y++) {
+            for(int x = 0; x < tilemapWidth; x++) {
+              Tile t = tilemap[y * tilemapWidth + x];
+              if (t.bottom.index > -1) {
+                SDL_Rect src = { t.bottom.x, t.bottom.y, srcTileSize, srcTileSize };
+                SDL_RenderCopy(r, tilesets[t.bottom.index], &src, &dst);                        
+              }
+              if (t.top.index > -1) {
+                SDL_Rect src = { t.top.x, t.top.y, srcTileSize, srcTileSize };
+                SDL_RenderCopy(r, tilesets[t.top.index], &src, &dst);                        
+              }
+              dst.x += dstTileSize;
             }
+            dst.x = -RenderSystem::scene->getCameraTransform().x;
+            dst.y += dstTileSize;
+          }
         } 
 };
 

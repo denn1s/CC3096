@@ -11,8 +11,8 @@ struct TagComponent {
 
 struct TransformComponent {
   glm::vec3 translate = { 0.0f, 0.0f, 0.0f };
-  glm::vec3 scale = { 1.0f, 1.0f, 1.0f };
-  glm::vec3 rotate = { 0.0f, 0.0f, 0.0f };
+//  glm::vec3 scale = { 1.0f, 1.0f, 1.0f };
+//  glm::vec3 rotate = { 0.0f, 0.0f, 0.0f };
 };
 
 struct CameraComponent {

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <glm/glm.hpp>
-#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/io.hpp>
 #include <SDL2/SDL.h>
 
 #include "Scene.h"
@@ -26,9 +26,9 @@ Entity Scene::createEntity(const std::string& name, int x, int y, int z)
   Entity entity = { r.create(), this };
   entity.addComponent<TagComponent>(name);
   entity.addComponent<TransformComponent>(
-    glm::vec3(x, y, z),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(0.0f, 0.0f, 0.0f)
+    glm::vec3(x, y, z)
+    // glm::vec3(1.0f, 1.0f, 1.0f),
+    // glm::vec3(0.0f, 0.0f, 0.0f)
   );
 
   return entity;
@@ -62,9 +62,9 @@ void Scene::setup()
 {
   std::cout << "Scene Setup" << std::endl;
 
-  Entity camera = scene->createEntity();
+  Entity camera = createEntity();
   camera.addComponent<CameraComponent>(CameraComponent{glm::mat4(1.0f)});
-  scene->mainCamera = new Entity(camera);
+  mainCamera = new Entity(camera);
 
   for (SetupSystem* sys: setupSystems)
   {
@@ -75,7 +75,7 @@ void Scene::setup()
 void Scene::update(double dT)
 {
   std::cout << "Scene Update" << std::endl;
-  scene->updateCameraTransform();
+  updateCameraTransform();
   
   for (UpdateSystem* sys: updateSystems)
   {
@@ -93,29 +93,43 @@ void Scene::render(SDL_Renderer* renderer)
   }
 }
 
-Entity* Scene::getMainCamera()
+void Scene::updateCameraTransform()
 {
-  return mainCamera;
-}
+  const int screenWidth = 800;
+  const int screenHeight = 600;
 
-void Scene::setMainCamera(Entity* camera)
-{
-  mainCamera = camera;
-  std::cout << "Main camera: " << &mainCamera << std::endl;
-}
+  // auto cameraComponent = mainCamera->getComponent<CameraComponent>();
+  auto& transformComponent = mainCamera->getComponent<TransformComponent>();
 
-glm::mat4 Scene::updateCameraTransform()
-{
-  auto cameraComponent = mainCamera->getComponent<CameraComponent>();
-  auto transformComponent = mainCamera->getComponent<TransformComponent>();
+  transformComponent.translate.x += 1;
 
+  /*
   glm::mat4 translation = glm::translate(glm::mat4(1.0f), transformComponent.translate);
   glm::mat4 rotation = glm::toMat4(glm::quat(transformComponent.rotate));
   glm::mat4 scaling = glm::scale(glm::mat4(1.0f), transformComponent.scale);
   glm::mat4 cameraTransform = translation * rotation * scaling;
 
-  const glm::mat4 cameraView = glm::inverse(cameraTransform);
-  const glm::mat4 cameraProjection = cameraComponent.projection;
+  glm::mat4 cameraView = glm::lookAt(glm::vec3(0,0,1), glm::vec3(0,0,0), glm::vec3(0,1,0));
+  glm::mat4 cameraProjection = glm::ortho(
+        -(screenWidth/2.0f), (screenWidth/2.0f), 
+         (screenHeight/2.0f), -(screenHeight/2.0f), 
+        -10.0f, 10.0f);
 
-  mainCameraTransform = cameraProjection * cameraView;
+  glm::mat4x4 cameraViewport{
+      (screenWidth/2), 0, 0, (screenWidth/2),
+      0, (screenHeight/2), 0, (screenHeight/2),
+      0, 0, 128, 128,
+      0, 0, 0, 1
+  };
+
+  mainCameraTransform = cameraViewport * cameraProjection * cameraView * cameraTransform;
+
+  std::cout << "Transforme: " << mainCameraTransform << std::endl;
+  */
+  mainCameraTransform = transformComponent.translate;
+}
+
+glm::vec3 Scene::getCameraTransform()
+{
+  return mainCameraTransform;
 }
