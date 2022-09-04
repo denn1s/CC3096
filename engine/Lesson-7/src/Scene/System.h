@@ -18,7 +18,7 @@ class SetupSystem : public System {
 
 class InputSystem : public System {
   public:
-    virtual void run(SDL_Event* event) = 0;
+    virtual void run(SDL_Event event) = 0;
 };
 
 class UpdateSystem : public System {

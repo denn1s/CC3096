@@ -13,9 +13,6 @@
 #include "Scene/Components.hpp"
 #include "Scene/Systems.hpp"
 
-int screen_width;
-int screen_height;
-
 Game::Game()
 {
   FPS = 5;
@@ -39,9 +36,6 @@ void Game::init(const char* title, int width, int height)
     IMG_Init(IMG_INIT_PNG);
     std::cout << "Game Start!" << std::endl;
 
-    screen_width = width;
-    screen_height = height;
-
     isRunning = true;
   } else {
     isRunning = false;
@@ -55,7 +49,7 @@ void Game::setup()
 {
   scene = new Scene("Level1");
 
-  // scene->addSetupSystem(new CameraSetupSystem());
+  scene->addInputSystem(new CameraInputSystem());
   AutoTileSystem* tilesetSystem = new AutoTileSystem(renderer, window);
   scene->addSetupSystem(tilesetSystem);
   scene->addRenderSystem(tilesetSystem);
@@ -104,15 +98,7 @@ void Game::handleEvents()
       isRunning = false;
     }
 
-    if (event.type == SDL_KEYDOWN)
-    {
-      // bounceInputSystem(event.key.keysym.sym);
-    }
-
-    if (event.type == SDL_MOUSEBUTTONDOWN)
-    {
-      // mouseBounceInputSystem(event.motion.x, event.motion.y);
-    }
+    scene->input(event);
   }
 }
 

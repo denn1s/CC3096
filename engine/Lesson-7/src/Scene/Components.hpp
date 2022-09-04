@@ -10,14 +10,11 @@ struct TagComponent {
 };
 
 struct TransformComponent {
-  glm::vec3 translate = { 0.0f, 0.0f, 0.0f };
-//  glm::vec3 scale = { 1.0f, 1.0f, 1.0f };
-//  glm::vec3 rotate = { 0.0f, 0.0f, 0.0f };
+    glm::vec2 translate = { 0.0f, 0.0f };
 };
 
 struct CameraComponent {
-  glm::mat4 projection = glm::mat4(1.0f);
-  bool isMain = false;
+  float zoom = 1.0f;
 };
 
 struct MovementComponent {

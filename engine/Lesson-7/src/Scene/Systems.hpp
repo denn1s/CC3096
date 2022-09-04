@@ -10,19 +10,37 @@
 #include "./System.h"
 #include "./Components.hpp"
 
-/*
-class CameraSetupSystem : public SetupSystem {
+class CameraInputSystem : public InputSystem {
   public:
-    void run() override {
-        Entity camera = scene->createEntity();
-        camera.addComponent<CameraComponent>(CameraComponent{glm::mat4(1.0f)});
-        std::cout << "Main Camera Created: " << &camera << std::endl;
+    void run(SDL_Event event) override {
+      auto& cameraTransform = scene->mainCamera->getComponent<TransformComponent>().translate;
+      auto& cameraZoom = scene->mainCamera->getComponent<CameraComponent>().zoom;
 
-        scene->setMainCamera(new Entity(camera));
+      if (event.type == SDL_KEYDOWN)
+      {
+        switch (event.key.keysym.sym) {
+          case SDLK_LEFT:
+            cameraTransform.x -= 10;
+            break;
+          case SDLK_RIGHT:
+            cameraTransform.x += 10;
+            break;
+          case SDLK_UP:
+            cameraTransform.y -= 10;
+            break;
+          case SDLK_DOWN:
+            cameraTransform.y += 10;
+            break;
+          case SDLK_z:
+            cameraZoom += 0.1;
+            break;
+          case SDLK_x:
+            cameraZoom -= 0.1;
+            break;
+        }
+      }
     }
 };
-*/
-
 
 struct Terrain {
     int index;  // 0 water, 1 dirt, 2 grass
@@ -137,7 +155,6 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
         SDL_Renderer* renderer;
         SDL_Window* window;
         
-        const static int dstTileSize = 32;
         const static int srcTileSize = 16;
 
         const std::string mapfile = "./assets/tilemaps/6.png";        
@@ -184,12 +201,14 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
         }
 
         void run(SDL_Renderer* r) override {
-          SDL_Rect dst = { 
-            -RenderSystem::scene->getCameraTransform().x,
-            -RenderSystem::scene->getCameraTransform().y,
-            32,
-            32
-          };
+          auto cameraTransform = RenderSystem::scene->mainCamera->getComponent<TransformComponent>().translate;
+          auto cameraZoom = RenderSystem::scene->mainCamera->getComponent<CameraComponent>().zoom;
+
+          const int dstTileSize = cameraZoom * srcTileSize;
+          const int cx = -cameraTransform.x;
+          const int cy = -cameraTransform.y;
+
+          SDL_Rect dst = { cx, cy, dstTileSize, dstTileSize };
 
           for(int y = 0; y < tilemapHeight; y++) {
             for(int x = 0; x < tilemapWidth; x++) {
@@ -204,7 +223,7 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
               }
               dst.x += dstTileSize;
             }
-            dst.x = -RenderSystem::scene->getCameraTransform().x;
+            dst.x = cx;
             dst.y += dstTileSize;
           }
         } 

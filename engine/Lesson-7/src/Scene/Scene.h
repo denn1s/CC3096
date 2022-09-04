@@ -20,20 +20,17 @@ class Scene {
     std::vector<UpdateSystem*> updateSystems;
     std::vector<RenderSystem*> renderSystems;
 
-    Entity* mainCamera;
-    glm::vec3 mainCameraTransform;
-
   public:
     Scene(const std::string&);
     ~Scene();
 
     entt::registry r;
+    Entity* mainCamera;
 
     Entity createEntity(
       const std::string& name = "NO NAME",
       int x = 0,
-      int y = 0,
-      int z = 0
+      int y = 0
     );
 
     void addSetupSystem(SetupSystem* s);
@@ -43,10 +40,8 @@ class Scene {
 
     void setup();
     void update(double dT);
+    void input(SDL_Event event);
     void render(SDL_Renderer* renderer);
-
-    void updateCameraTransform();
-    glm::vec3 getCameraTransform();
 };
 
 #endif
