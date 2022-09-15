@@ -10,10 +10,10 @@
 #include "./System.h"
 #include "./Components.hpp"
 
-class CameraInputSystem : public InputSystem {
+class PlayerInputSystem : public InputSystem {
   public:
     void run(SDL_Event event) override {
-      auto& cameraTransform = scene->mainCamera->getComponent<TransformComponent>().translate;
+      auto& cameraTransform = scene->mainCamera->getComponent<TransformComponent>();
       auto& cameraZoom = scene->mainCamera->getComponent<CameraComponent>().zoom;
 
       if (event.type == SDL_KEYDOWN)
@@ -201,7 +201,7 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
         }
 
         void run(SDL_Renderer* r) override {
-          auto cameraTransform = RenderSystem::scene->mainCamera->getComponent<TransformComponent>().translate;
+          auto cameraTransform = RenderSystem::scene->mainCamera->getComponent<TransformComponent>();
           auto cameraZoom = RenderSystem::scene->mainCamera->getComponent<CameraComponent>().zoom;
 
           const int dstTileSize = cameraZoom * srcTileSize;
@@ -259,19 +259,19 @@ class SpriteRenderSystem : public RenderSystem {
         ~SpriteRenderSystem() {}
 
         void run(SDL_Renderer* renderer) override {
-          auto cameraTransform = scene->mainCamera->getComponent<TransformComponent>().translate;
+          auto cameraTransform = scene->mainCamera->getComponent<TransformComponent>();
           auto cameraZoom = scene->mainCamera->getComponent<CameraComponent>().zoom;
           const int cx = cameraTransform.x;
           const int cy = cameraTransform.y;
 
           const auto view = scene->r.view<TransformComponent, SpriteComponent>();
           for (const entt::entity e : view) {
-            const auto pos = view.get<TransformComponent>(e).translate;
+            const auto pos = view.get<TransformComponent>(e);
             const auto sprite = view.get<SpriteComponent>(e);
             const int dstTileSize = cameraZoom * sprite.size;
 
             SDL_Rect src = { sprite.x, sprite.y, sprite.size, sprite.size };
-            SDL_Rect dst = { pos.x, pos.y, dstTileSize, dstTileSize };
+            SDL_Rect dst = { (int)pos.x, (int)pos.y, dstTileSize, dstTileSize };
 
             SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 

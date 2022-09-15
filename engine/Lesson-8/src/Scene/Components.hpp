@@ -10,7 +10,8 @@ struct TagComponent {
 };
 
 struct TransformComponent {
-    glm::vec2 translate = { 0.0f, 0.0f };
+  int x = 0;
+  int y = 0;
 };
 
 struct CameraComponent {
@@ -23,7 +24,6 @@ struct SpriteComponent {
   int size = 24;
   SDL_Texture* texture;
 };
-
 
 struct MovementComponent {
   glm::vec2 velocity;

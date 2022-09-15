@@ -25,7 +25,7 @@ Entity Scene::createEntity(const std::string& name, int x, int y)
 {
   Entity entity = { r.create(), this };
   entity.addComponent<TagComponent>(name);
-  entity.addComponent<TransformComponent>(glm::vec2(x, y));
+  entity.addComponent<TransformComponent>(x, y);
 
   return entity;
 }
@@ -59,7 +59,7 @@ void Scene::setup()
   std::cout << "Scene Setup" << std::endl;
 
   Entity camera = createEntity();
-  auto& cameraTransform = camera.getComponent<TransformComponent>().translate;
+  auto& cameraTransform = camera.getComponent<TransformComponent>();
   cameraTransform.x = 320 * 4;
   cameraTransform.y = 240 * 4;
   camera.addComponent<CameraComponent>(4.0f);
