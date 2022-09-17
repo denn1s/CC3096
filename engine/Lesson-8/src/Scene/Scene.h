@@ -26,6 +26,7 @@ class Scene {
 
     entt::registry r;
     Entity* mainCamera;
+    Entity* player;
 
     Entity createEntity(
       const std::string& name = "NO NAME",

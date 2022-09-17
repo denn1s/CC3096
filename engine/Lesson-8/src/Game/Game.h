@@ -21,6 +21,8 @@ class Game {
     bool isRunning;
     SDL_Window *window;
     SDL_Renderer *renderer;
+    int screenWidth;
+    int screenHeight;
     // for frame management
     int FPS;
     Uint32 frameStartTimestamp;

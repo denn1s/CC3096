@@ -33,6 +33,9 @@ void Game::init(const char* title, int width, int height)
   {
     window = SDL_CreateWindow(title, 0, 0, width, height, 0);
     renderer = SDL_CreateRenderer(window, -1, 0);
+    screenWidth = width;
+    screenHeight = height;
+
     IMG_Init(IMG_INIT_PNG);
     std::cout << "Game Start!" << std::endl;
 
@@ -49,9 +52,18 @@ void Game::setup()
 {
   scene = new Scene("Level1");
 
+  scene->addSetupSystem(new CameraSetupSystem(
+    4,
+    screenWidth,
+    screenHeight,
+    40 * 16 * 4,
+    30 * 16 * 4
+  ));
   scene->addSetupSystem(new CharacterSetupSystem(renderer));
   scene->addInputSystem(new PlayerInputSystem());
 
+  scene->addUpdateSystem(new MovementUpdateSystem());
+  scene->addUpdateSystem(new CameraFollowUpdateSystem());
 
   AutoTileSystem* tilesetSystem = new AutoTileSystem(renderer, window);
   scene->addSetupSystem(tilesetSystem);

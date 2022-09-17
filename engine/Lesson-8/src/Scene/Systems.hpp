@@ -13,29 +13,41 @@
 class PlayerInputSystem : public InputSystem {
   public:
     void run(SDL_Event event) override {
-      auto& cameraTransform = scene->mainCamera->getComponent<TransformComponent>();
-      auto& cameraZoom = scene->mainCamera->getComponent<CameraComponent>().zoom;
+      auto& playerMovement = scene->player->getComponent<MovementComponent>();
+
+      int speed = 100;
 
       if (event.type == SDL_KEYDOWN)
       {
         switch (event.key.keysym.sym) {
           case SDLK_LEFT:
-            cameraTransform.x -= 10;
+            playerMovement.vx = -speed;
             break;
           case SDLK_RIGHT:
-            cameraTransform.x += 10;
+            playerMovement.vx = speed;
             break;
           case SDLK_UP:
-            cameraTransform.y -= 10;
+            playerMovement.vy = -speed;
             break;
           case SDLK_DOWN:
-            cameraTransform.y += 10;
+            playerMovement.vy = speed;
             break;
-          case SDLK_z:
-            cameraZoom += 0.1;
+        }
+      }  
+      if (event.type == SDL_KEYUP)
+      {
+        switch (event.key.keysym.sym) {
+          case SDLK_LEFT:
+            playerMovement.vx = 0;
             break;
-          case SDLK_x:
-            cameraZoom -= 0.1;
+          case SDLK_RIGHT:
+            playerMovement.vx = 0;
+            break;
+          case SDLK_UP:
+            playerMovement.vy = 0;
+            break;
+          case SDLK_DOWN:
+            playerMovement.vy = 0;
             break;
         }
       }
@@ -175,29 +187,29 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
         ~AutoTileSystem() {}
 
         void run() override {
-            for(int i = 0; i < 3; i++) {
-                SDL_Surface* surface = IMG_Load(layerfiles[i].c_str());
-                tilesets[i] = SDL_CreateTextureFromSurface(renderer, surface);
-                SDL_FreeSurface(surface);
+          auto& cameraComponent = SetupSystem::scene->mainCamera->getComponent<CameraComponent>();
+
+          for(int i = 0; i < 3; i++) {
+            SDL_Surface* surface = IMG_Load(layerfiles[i].c_str());
+            tilesets[i] = SDL_CreateTextureFromSurface(renderer, surface);
+            SDL_FreeSurface(surface);
+          }
+
+          STexture* mapImage = new STexture(renderer, window);
+          mapImage->load(mapfile);
+          tilemapWidth = mapImage->getWidth();
+          tilemapHeight = mapImage->getHeight();
+          tilemap = new Tile[tilemapWidth * tilemapHeight];
+
+          mapImage->lockTexture();
+          for(int y = 0; y < tilemapHeight; y++) {
+            for(int x = 0; x < tilemapWidth; x++) {
+              autotile(mapImage, x, y, &tilemap[y * tilemapWidth + x]);
             }
+          }
+          mapImage->unlockTexture();
 
-
-            STexture* mapImage = new STexture(renderer, window);
-            mapImage->load(mapfile);
-            tilemapWidth = mapImage->getWidth();
-            tilemapHeight = mapImage->getHeight();
-            tilemap = new Tile[tilemapWidth * tilemapHeight];
-
-            mapImage->lockTexture();
-            for(int y = 0; y < tilemapHeight; y++) {
-                for(int x = 0; x < tilemapWidth; x++) {
-                    autotile(mapImage, x, y, &tilemap[y * tilemapWidth + x]);
-                }
-            }
-            mapImage->unlockTexture();
-
-            delete mapImage;
-
+          delete mapImage;
         }
 
         void run(SDL_Renderer* r) override {
@@ -205,10 +217,10 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
           auto cameraZoom = RenderSystem::scene->mainCamera->getComponent<CameraComponent>().zoom;
 
           const int dstTileSize = cameraZoom * srcTileSize;
-          const int cx = -cameraTransform.x;
-          const int cy = -cameraTransform.y;
+          const int cx = cameraTransform.x;
+          const int cy = cameraTransform.y;
 
-          SDL_Rect dst = { cx, cy, dstTileSize, dstTileSize };
+          SDL_Rect dst = { -cx, -cy, dstTileSize, dstTileSize };
 
           for(int y = 0; y < tilemapHeight; y++) {
             for(int x = 0; x < tilemapWidth; x++) {
@@ -223,7 +235,7 @@ class AutoTileSystem : public SetupSystem, public RenderSystem {
               }
               dst.x += dstTileSize;
             }
-            dst.x = cx;
+            dst.x = -cx;
             dst.y += dstTileSize;
           }
         } 
@@ -242,13 +254,54 @@ class CharacterSetupSystem : public SetupSystem {
         ~CharacterSetupSystem() {}
 
         void run() override {
+          auto cameraComponent = scene->mainCamera->getComponent<CameraComponent>();
+
           SDL_Surface* surface = IMG_Load(spritefile.c_str());
           SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
           SDL_FreeSurface(surface);
 
-
-          Entity player = scene->createEntity("PLAYER", 100, 100);
+          Entity player = scene->createEntity(
+            "PLAYER",
+            cameraComponent.ww / 2 + cameraComponent.vw / 2 - 12 * cameraComponent.zoom,
+            cameraComponent.wh / 2 + cameraComponent.vh / 2 - 12 * cameraComponent.zoom
+          );
+          player.addComponent<MovementComponent>(0, 0);
           player.addComponent<SpriteComponent>(0, 0, 24, texture);
+          scene->player = new Entity(player);
+        }
+};
+
+
+class CameraSetupSystem : public SetupSystem {
+    private:
+      int viewportWidth;
+      int viewportHeight;
+      int worldWidth;
+      int worldHeight;
+      int zoom;
+
+    public:
+        CameraSetupSystem(int z, int vw, int vh, int ww, int wh) : 
+          zoom(z),
+          viewportWidth(vw),
+          viewportHeight(vh),
+          worldWidth(ww),
+          worldHeight(wh)
+        {}
+
+        void run() override {
+          Entity camera = scene->createEntity("CAMERA",
+            (worldWidth) / 2,
+            (worldHeight) / 2 
+          );
+          camera.addComponent<CameraComponent>(
+            zoom,
+            viewportWidth,
+            viewportHeight,
+            worldWidth,
+            worldHeight
+          );
+          scene->mainCamera = new Entity(camera);
         }
 };
 
@@ -271,12 +324,47 @@ class SpriteRenderSystem : public RenderSystem {
             const int dstTileSize = cameraZoom * sprite.size;
 
             SDL_Rect src = { sprite.x, sprite.y, sprite.size, sprite.size };
-            SDL_Rect dst = { (int)pos.x, (int)pos.y, dstTileSize, dstTileSize };
+            SDL_Rect dst = { pos.x - cx, pos.y - cy, dstTileSize, dstTileSize };
+
 
             SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 
             // SDL_RenderFillRect(renderer, &dst);
             SDL_RenderCopy(renderer, sprite.texture, &src, &dst);                        
+          }
+        }
+};
+
+class MovementUpdateSystem : public UpdateSystem {
+    public:
+        void run(double dT) override {
+          const auto view = scene->r.view<TransformComponent, MovementComponent>();
+          for (const entt::entity e : view) {
+            auto& pos = view.get<TransformComponent>(e);
+            const auto vel = view.get<MovementComponent>(e);
+
+            pos.x += vel.vx * dT;
+            pos.y += vel.vy * dT;
+          }
+        }
+};
+
+class CameraFollowUpdateSystem : public UpdateSystem {
+    public:
+        void run(double dT) override {
+          auto playerTransform = scene->player->getComponent<TransformComponent>();
+          auto cameraComponent = scene->mainCamera->getComponent<CameraComponent>();
+          auto& cameraTransform = scene->mainCamera->getComponent<TransformComponent>();
+
+          int px = playerTransform.x - cameraComponent.vw / 2 + 12 * cameraComponent.zoom;
+          int py = playerTransform.y - cameraComponent.vh / 2 + 12 * cameraComponent.zoom;
+
+          if (px > 0 && px < cameraComponent.ww - cameraComponent.vw) {
+            cameraTransform.x = playerTransform.x - cameraComponent.vw / 2 + 12 * cameraComponent.zoom;
+          }
+
+          if (py > 0 && py < cameraComponent.wh - cameraComponent.vh) {
+            cameraTransform.y = playerTransform.y - cameraComponent.vh / 2 + 12 * cameraComponent.zoom;
           }
         }
 };

@@ -14,8 +14,17 @@ struct TransformComponent {
   int y = 0;
 };
 
+struct MovementComponent {
+  int vx = 0;
+  int vy = 0;
+};
+
 struct CameraComponent {
-  float zoom = 1.0f;
+  int zoom = 1;
+  int vw = 0;
+  int vh = 0;
+  int ww = 0;
+  int wh = 0;
 };
 
 struct SpriteComponent {
@@ -23,14 +32,6 @@ struct SpriteComponent {
   int y = 0;
   int size = 24;
   SDL_Texture* texture;
-};
-
-struct MovementComponent {
-  glm::vec2 velocity;
-};
-
-struct ColliderComponent {
-  glm::vec2 size;
 };
 
 #endif

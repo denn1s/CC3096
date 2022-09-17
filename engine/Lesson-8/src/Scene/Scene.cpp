@@ -58,13 +58,6 @@ void Scene::setup()
 {
   std::cout << "Scene Setup" << std::endl;
 
-  Entity camera = createEntity();
-  auto& cameraTransform = camera.getComponent<TransformComponent>();
-  cameraTransform.x = 320 * 4;
-  cameraTransform.y = 240 * 4;
-  camera.addComponent<CameraComponent>(4.0f);
-  mainCamera = new Entity(camera);
-
   for (SetupSystem* sys: setupSystems)
   {
     sys->run();
@@ -72,9 +65,7 @@ void Scene::setup()
 }
 
 void Scene::input(SDL_Event event)
-{
-  std::cout << "Scene Input" << std::endl;
-  
+{  
   for (InputSystem* sys: inputSystems)
   {
     sys->run(event);
