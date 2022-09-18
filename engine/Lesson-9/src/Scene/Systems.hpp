@@ -14,6 +14,7 @@ class PlayerInputSystem : public InputSystem {
   public:
     void run(SDL_Event event) override {
       auto& playerMovement = scene->player->getComponent<MovementComponent>();
+      auto& playerSprite = scene->player->getComponent<SpriteComponent>();
 
       int speed = 100;
 
@@ -39,17 +40,41 @@ class PlayerInputSystem : public InputSystem {
         switch (event.key.keysym.sym) {
           case SDLK_LEFT:
             playerMovement.vx = 0;
+            if (playerMovement.vy == 0) {
+              playerSprite.yIndex = 2;
+            }
             break;
           case SDLK_RIGHT:
             playerMovement.vx = 0;
+            if (playerMovement.vy == 0) {
+              playerSprite.yIndex = 3;
+            }
             break;
           case SDLK_UP:
             playerMovement.vy = 0;
+            if (playerMovement.vx == 0) {
+              playerSprite.yIndex = 1;
+            }
             break;
           case SDLK_DOWN:
             playerMovement.vy = 0;
+            if (playerMovement.vx == 0) {
+              playerSprite.yIndex = 0;
+            }
             break;
         }
+      }
+      if (playerMovement.vx < 0) {
+        playerSprite.yIndex = 7;
+      }
+      if (playerMovement.vx > 0) {
+        playerSprite.yIndex = 6;
+      }
+      if (playerMovement.vy < 0) {
+        playerSprite.yIndex = 5;
+      }
+      if (playerMovement.vy > 0) {
+        playerSprite.yIndex = 4;
       }
     }
 };
@@ -268,7 +293,6 @@ class CharacterSetupSystem : public SetupSystem {
         }
 };
 
-
 class CameraSetupSystem : public SetupSystem {
     private:
       int viewportWidth;
@@ -337,17 +361,13 @@ class SpriteSystem : public SetupSystem, public UpdateSystem, public RenderSyste
             if (sprite.animationDurationSeconds > 0) {
               float adT = (current - sprite.lastUpdate) / 1000.0f;
               float afps = sprite.animationDurationSeconds/FPS;
-              int framesToUpdate = floor(adT/afps);
-
-              std::cout << "framesToUpdate: " << framesToUpdate << std::endl;
+              int framesToUpdate = adT/afps;
 
               if (framesToUpdate > 0) {
                 sprite.xIndex += framesToUpdate;
                 sprite.xIndex %= sprite.animationFrames;
                 sprite.lastUpdate = current;
               }
-
-              std::cout << "inde: " << sprite.xIndex << std::endl;
             }
           }
         }
