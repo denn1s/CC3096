@@ -392,7 +392,7 @@ class SpriteSystem : public SetupSystem, public UpdateSystem, public RenderSyste
             SDL_Rect src = { spriteX, spriteY, sprite.size, sprite.size };
             SDL_Rect dst = { pos.x - cx, pos.y - cy, dstTileSize, dstTileSize };
 
-            SDL_RenderCopyEx(renderer, tilesets[sprite.sheetIndex], &src, &dst, 0, NULL, (SDL_RendererFlip) sprite.flip);
+            SDL_RenderCopyEx(renderer, tilesets[sprite.sheetIndex], &src, &dst, sprite.rotate, NULL, SDL_FLIP_NONE);
           }
         }
 };
@@ -465,10 +465,80 @@ class EnemySpawnSystem : public SetupSystem {
             0, // animation duration seconds
             0, // x index for this sprite
             enemyIndex * 16, // y index for this sprite
-            16, // src size for the sprite,
-            0, // lastUpdate
-            SDL_FLIP_VERTICAL | SDL_FLIP_HORIZONTAL
+            16 // src size for the sprite
           );        
+        }
+};
+
+class EnemyMovementSystem : public UpdateSystem {
+    public:
+        EnemyMovementSystem() {}
+
+        ~EnemyMovementSystem() {}
+
+        void run(double dT) override {
+          auto playerTransform = scene->player->getComponent<TransformComponent>();
+
+          const auto view = scene->r.view<
+            EnemyComponent,
+            TransformComponent,
+            SpriteComponent,
+            MovementComponent
+          >();
+
+          for (const entt::entity e : view) {
+            const auto enemy = view.get<EnemyComponent>(e);
+            const auto pos = view.get<TransformComponent>(e);
+            auto& sprite = view.get<SpriteComponent>(e);
+            auto& vel = view.get<MovementComponent>(e);
+
+            std::cout << "enemy: " << pos.y << " player: " << playerTransform.y << std::endl;
+
+            int tx = playerTransform.x + 48;
+            int ty = playerTransform.y + 48;
+
+            switch(enemy.aiIndex) {
+              case 0:
+                int speed = 500;
+                if (ty > pos.y) {
+                  vel.vx = 0;
+                  vel.vy = speed;
+                } else if (ty < pos.y) {
+                  vel.vx = 0;
+                  vel.vy = -speed;
+                } else if (tx > pos.x) {
+                  vel.vx = speed;
+                  vel.vy = 0;
+                } else if (tx < pos.x) {
+                  vel.vx = -speed;
+                  vel.vy = 0;
+                } else {
+                  vel.vx = 0;
+                  vel.vy = 0;
+                }
+                if (vel.vx > 0) {
+                  sprite.rotate = 90;
+                }
+                if (vel.vx < 0) {
+                  sprite.rotate = -90;
+                }
+                if (vel.vy < 0) {
+                  sprite.rotate = 0;
+                }
+                if (vel.vy > 0) {
+                  sprite.rotate = 180;
+                }
+                std::cout << "vx " << vel.vx << std::endl;
+                std::cout << "vy " << vel.vy << std::endl;
+
+                if (vel.vx == 0 && vel.vy == 0) {
+                  sprite.animationDurationSeconds = 0;
+                } else {
+                  sprite.animationDurationSeconds = 1;
+                }
+                break;
+            }
+          }
         }
 };
 

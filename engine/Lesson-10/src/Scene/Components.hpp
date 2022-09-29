@@ -36,7 +36,7 @@ struct SpriteComponent {
   int yIndex = 0;
   int size = 48;
   int lastUpdate = 0;
-  int flip = 0;
+  int rotate = 0;
 };
 
 struct EnemyComponent {

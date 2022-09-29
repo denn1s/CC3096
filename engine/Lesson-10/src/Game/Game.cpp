@@ -62,6 +62,7 @@ void Game::setup()
   scene->addSetupSystem(new CharacterSetupSystem());
   scene->addInputSystem(new PlayerInputSystem());
 
+  scene->addUpdateSystem(new EnemyMovementSystem());
   scene->addUpdateSystem(new MovementUpdateSystem());
   scene->addUpdateSystem(new CameraFollowUpdateSystem());
 
