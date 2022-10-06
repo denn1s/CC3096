@@ -43,7 +43,11 @@ Entity Scene::createEntity(const std::string& name, b2BodyType type, int x, int 
   bodyDef.type = type;
   bodyDef.position.Set(x, y);
   b2Body* body = world->CreateBody(&bodyDef);
-  body->SetFixedRotation(true); 
+  body->SetFixedRotation(true);
+
+  b2BodyUserData data = body->GetUserData();
+  data.pointer = (uintptr_t)"hola";
+
   entity.addComponent<RigidBodyComponent>(type, body);
 
   return entity;

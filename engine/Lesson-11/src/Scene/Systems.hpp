@@ -707,7 +707,6 @@ class BoxColliderSetupSystem : public SetupSystem {
           fixtureDef.restitution = collider.restitution;
           fixtureDef.restitutionThreshold = collider.restitutionThreshold;
 
-
           rb.body->CreateFixture(&fixtureDef);  
         }
       }
