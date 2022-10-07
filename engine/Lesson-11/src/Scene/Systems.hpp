@@ -8,6 +8,8 @@
 #include <SDL2/SDL.h>
 #include <glm/gtx/io.hpp>
 #include <box2d/box2d.h>
+
+#include "./Events.hpp"
 #include "./STexture.cpp"
 #include "./System.h"
 #include "./Components.hpp"
@@ -77,6 +79,32 @@ class PlayerInputSystem : public InputSystem {
       }
       if (playerMovement.vy > 0) {
         playerSprite.yIndex = 4;
+      }
+    }
+};
+
+class CollisionInputSystem : public InputSystem {
+  public:
+    void run(SDL_Event event) override {
+
+      if (event.type == scene->collisionEvent)
+      {
+          Entity* first = (Entity*)event.user.data1;
+          Entity* second = (Entity*)event.user.data2;
+
+          std::cout << "FIRST ENTITY " << first->getComponent<TagComponent>().tag << std::endl;
+          std::cout << "SECOND ENTITY " << second->getComponent<TagComponent>().tag << std::endl;
+
+          if (second->getComponent<TagComponent>().tag == "PLAYER") {
+            std::cout << "UUUPPP " << std::endl;
+
+            const auto rigid = second->getComponent<RigidBodyComponent>();
+            rigid.body->ApplyForce(
+              b2Vec2{-100000.0f * 100, 0},
+              rigid.body->GetWorldCenter(),
+              true
+            );
+          }
       }
     }
 };
@@ -307,7 +335,7 @@ class CharacterSetupSystem : public SetupSystem {
             16, // width of the box
             16, // height of the box
             1.0f, // density
-            0.0f // friction
+            0.1f // friction
           );
           
           scene->player = new Entity(player);
@@ -428,20 +456,9 @@ class MovementUpdateSystem : public UpdateSystem {
 
             rb.body->SetLinearVelocity(
               b2Vec2{
-                (float)vel.vx, 
+                prevVel.x, //(float)vel.vx, 
                 prevVel.y
               });
-
-            if (vel.vy > 0) {
-              std::cout << "jump!" << std::endl;
-              rb.body->ApplyLinearImpulse(
-                b2Vec2{0.0f, -100.0f * rb.body->GetMass()},
-                rb.body->GetPosition(),
-                true
-              );
-            } else {
-              
-            }
           }
         }
 };

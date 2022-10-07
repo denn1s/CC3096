@@ -61,6 +61,7 @@ void Game::setup()
   ));
   scene->addSetupSystem(new CharacterSetupSystem());
   scene->addInputSystem(new PlayerInputSystem());
+  scene->addInputSystem(new CollisionInputSystem());
 
   scene->addUpdateSystem(new EnemyMovementSystem());
   scene->addUpdateSystem(new MovementUpdateSystem());

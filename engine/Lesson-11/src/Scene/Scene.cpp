@@ -6,17 +6,20 @@
 #include <box2d/box2d.h>
 
 #include "Scene.h"
+#include "Events.hpp"
 
 #include "Entities.hpp"
 #include "Components.hpp"
 #include "System.h"
 
-
 Scene::Scene(const std::string& name)
 {
   std::cout << "Scene " << name << " constructed!" << std::endl;
 
+  collisionEvent = SDL_RegisterEvents(1);
+
   world = new b2World({ 0.0f, 9.8f * 100 });
+  world->SetContactListener(new ContactListener(collisionEvent));
 }
 
 Scene::~Scene()
@@ -45,8 +48,14 @@ Entity Scene::createEntity(const std::string& name, b2BodyType type, int x, int 
   b2Body* body = world->CreateBody(&bodyDef);
   body->SetFixedRotation(true);
 
-  b2BodyUserData data = body->GetUserData();
-  data.pointer = (uintptr_t)"hola";
+  struct BodyUserData
+  {
+      BodyUserData(Entity e) : entity(e) {};
+      Entity entity;
+  };
+
+  BodyUserData* data = new BodyUserData(entity);
+  body->GetUserData().pointer = reinterpret_cast<uintptr_t>(data);
 
   entity.addComponent<RigidBodyComponent>(type, body);
 

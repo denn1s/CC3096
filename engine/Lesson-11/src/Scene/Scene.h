@@ -29,6 +29,7 @@ class Scene {
     Entity* mainCamera;
     Entity* player;
     b2World* world;
+    Uint32 collisionEvent;
 
     Entity createEntity(
       const std::string& name = "NO NAME",
